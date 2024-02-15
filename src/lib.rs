@@ -13,6 +13,7 @@ pub use reqwest;
 pub use serde;
 pub use tokio;
 pub use tracing;
+pub use urlencoding;
 pub use uuid;
 
 pub use levelcrush_macros as proc_macros;
