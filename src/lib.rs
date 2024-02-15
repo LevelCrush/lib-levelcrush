@@ -1,14 +1,15 @@
 // rexports
 pub use anyhow;
-#[cfg(feature = "server")]
 pub use axum;
-#[cfg(feature = "session")]
 pub use axum_sessions;
 pub use chrono;
+pub use clap;
 pub use dotenvy;
 pub use dotenvy_macro;
 pub use futures;
+pub use md5;
 pub use rand;
+pub use reqwest;
 pub use serde;
 pub use tokio;
 pub use tracing;
@@ -23,11 +24,9 @@ pub mod database;
 pub mod macros;
 pub mod queries;
 pub mod retry_lock;
+pub mod server;
 pub mod task_pool;
 pub mod util;
-
-#[cfg(feature = "server")]
-pub mod server;
 
 /// setups tracing and loads settings from the local .env file
 pub fn env() {

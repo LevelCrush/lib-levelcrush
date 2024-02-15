@@ -1,6 +1,6 @@
 [package]
 name = "levelcrush"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 
 [lib]
@@ -8,15 +8,14 @@ doctest = false
 
 
 [dependencies]
+
 # webserver 
-axum = { version = "0.6.19", optional = true }
-axum-sessions = { version = "0.5.0", optional = true }
 tower-http = { version = "0.4.2", features = [
     "full",
-], default_features = false, optional = true }
-tower = { version = "0.4.13", features = [
-    "full",
-], default_features = false, optional = true }
+], default_features = false }
+axum = { version = "0.6.19" }
+axum-sessions = { version = "0.5.0" }
+tower = { version = "0.4.13", features = ["full"], default_features = false }
 
 levelcrush-macros = { git = "https://code.levelcrush.com/LevelCrush/lib-levelcrush-macros.git", rev = "67288bd0d7" }
 tokio = { version = "1.25.0", features = ["full", "tracing"] }
