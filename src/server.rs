@@ -2,12 +2,10 @@ use crate::util::unix_timestamp;
 use axum::{error_handling::HandleErrorLayer, http::StatusCode, response::IntoResponse, BoxError, Json, Router};
 use std::{net::SocketAddr, time::Duration};
 use tower::{buffer::BufferLayer, limit::RateLimitLayer, ServiceBuilder};
-#[cfg(feature = "cors")]
 use {
     axum::http::{HeaderValue, Method},
     tower_http::cors::{AllowOrigin, CorsLayer},
 };
-#[cfg(feature = "session")]
 use {
     axum_sessions::async_session::MemoryStore,
     axum_sessions::{SameSite, SessionLayer},
@@ -76,7 +74,6 @@ impl<T: serde::ser::Serialize> APIResponse<T> {
     }
 }
 
-#[cfg(feature = "session")]
 async fn setup_session_layer() -> SessionLayer<MemoryStore> {
     let secret = std::env::var("SERVER_SECRET").unwrap_or_default();
     let store = MemoryStore::new();
@@ -117,14 +114,12 @@ impl Server {
     }
 
     /// turn on the cors layer
-    #[cfg(feature = "cors")]
     pub fn enable_cors(mut self) -> Self {
         self.allow_cors = true;
         self
     }
 
     /// turn on the session layer
-    #[cfg(feature = "session")]
     pub fn enable_session(mut self) -> Self {
         self.allow_session = true;
         self
@@ -142,26 +137,24 @@ impl Server {
         // turn on cors
         if self.allow_cors {
             tracing::info!("Here before cors");
-            #[cfg(feature = "cors")]
-            {
-                tracing::info!("Enabling cors!");
-                // cors layer ( for our services, this is just about always going to be the same)
-                // we may allow this to be extended in the future but for now it works
-                let origins = vec![
-                    HeaderValue::from_str("https://levelcrush.local").unwrap(),
-                    HeaderValue::from_str("https://preview.levelcrush.com").unwrap(),
-                    HeaderValue::from_str("https://www.levelcrush.com").unwrap(),
-                    HeaderValue::from_str("https://levelcrush.com").unwrap(),
-                ];
 
-                // enable cors
-                let cors_layer = CorsLayer::new()
-                    .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
-                    .allow_origin(AllowOrigin::from(origins))
-                    .allow_credentials(true);
+            tracing::info!("Enabling cors!");
+            // cors layer ( for our services, this is just about always going to be the same)
+            // we may allow this to be extended in the future but for now it works
+            let origins = vec![
+                HeaderValue::from_str("https://levelcrush.local").unwrap(),
+                HeaderValue::from_str("https://preview.levelcrush.com").unwrap(),
+                HeaderValue::from_str("https://www.levelcrush.com").unwrap(),
+                HeaderValue::from_str("https://levelcrush.com").unwrap(),
+            ];
 
-                router = router.layer(cors_layer);
-            }
+            // enable cors
+            let cors_layer = CorsLayer::new()
+                .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+                .allow_origin(AllowOrigin::from(origins))
+                .allow_credentials(true);
+
+            router = router.layer(cors_layer);
         }
 
         if self.rate_limit {
@@ -179,12 +172,9 @@ impl Server {
         }
 
         if self.allow_session {
-            #[cfg(feature = "session")]
-            {
-                tracing::info!("Enabling In-Memory session!");
-                let session_layer = setup_session_layer().await;
-                router = router.layer(session_layer);
-            }
+            tracing::info!("Enabling In-Memory session!");
+            let session_layer = setup_session_layer().await;
+            router = router.layer(session_layer);
         }
 
         // run the callback
