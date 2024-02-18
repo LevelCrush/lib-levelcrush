@@ -8,6 +8,7 @@ doctest = false
 
 
 [dependencies]
+levelcrush-macros = { git = "https://code.levelcrush.com/LevelCrush/lib-levelcrush-macros.git", rev = "67288bd0d7" }
 
 # webserver 
 tower-http = { version = "0.4.2", features = [
@@ -16,22 +17,18 @@ tower-http = { version = "0.4.2", features = [
 axum = { version = "0.6.19" }
 axum-sessions = { version = "0.5.0" }
 tower = { version = "0.4.13", features = ["full"], default_features = false }
+sea-orm = { version = "0.12", features = [
+    "sqlx-mysql",
+    "runtime-tokio-rustls",
+    "macros",
+] }
 
-levelcrush-macros = { git = "https://code.levelcrush.com/LevelCrush/lib-levelcrush-macros.git", rev = "67288bd0d7" }
 tokio = { version = "1.25.0", features = ["full", "tracing"] }
 serde = { version = "1.0.171", features = ["derive"] }
 serde_json = { version = "1.0.103" }
 serde_urlencoded = { version = "0.7.1" }
 serde_repr = { version = "0.1.14" }
 serde_yaml = { version = "0.9.25" }
-sqlx = { version = "0.7.1", features = [
-    "sqlite",
-    "bigdecimal",
-    "runtime-tokio-rustls",
-    "macros",
-    "chrono",
-], default_features = false }
-bigdecimal = { version = "0.3.1", features = ["serde"] } # compat with sqlx
 chrono = { version = "0.4.26", features = ["serde", "default"] }
 tracing = { version = "0.1.37", features = ["log"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
