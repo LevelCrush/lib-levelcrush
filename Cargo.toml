@@ -6,11 +6,14 @@ edition = "2021"
 [lib]
 doctest = false
 
+[workspace]
+members = ["migration", "entity", "."]
 
-[dependencies]
+
+[workspace.dependencies]
+entity = { path = "entity" }
+migration = { path = "migration" }
 levelcrush-macros = { git = "https://code.levelcrush.com/LevelCrush/lib-levelcrush-macros.git", rev = "67288bd0d7" }
-
-# webserver 
 tower-http = { version = "0.4.2", features = [
     "full",
 ], default_features = false }
@@ -51,3 +54,33 @@ clap = { version = "4.3.17", features = ["derive"] }
 md5 = { version = "0.7.0" }
 base64 = { version = "0.21.0" }
 urlencoding = { version = "2.1.2" }
+
+
+[dependencies]
+# webserver 
+tower-http = { workspace = true }
+axum = { workspace = true }
+axum-sessions = { workspace = true }
+tower = { workspace = true }
+sea-orm = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_urlencoded = { workspace = true }
+serde_repr = { workspace = true }
+serde_yaml = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+dotenvy = { workspace = true }
+dotenvy_macro = { workspace = true }
+anyhow = { workspace = true }
+uuid = { workspace = true }
+tracing-test = { workspace = true }
+rand = { workspace = true }
+futures = { workspace = true }
+reqwest = { workspace = true }
+clap = { workspace = true }
+md5 = { workspace = true }
+base64 = { workspace = true }
+urlencoding = { workspace = true }
