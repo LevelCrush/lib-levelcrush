@@ -21,6 +21,10 @@ sea-orm = { version = "0.12", features = [
     "sqlx-mysql",
     "runtime-tokio-rustls",
     "macros",
+    "with-bigdecimal",
+    "with-chrono",
+    "with-uuid",
+    "mock",
 ] }
 
 tokio = { version = "1.25.0", features = ["full", "tracing"] }
