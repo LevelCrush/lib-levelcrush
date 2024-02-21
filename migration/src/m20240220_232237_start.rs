@@ -9,33 +9,33 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Application::Table)
+                    .table(Applications::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Application::Id)
+                        ColumnDef::new(Applications::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Application::Hash).char_len(32).not_null())
-                    .col(ColumnDef::new(Application::HashSecret).char_len(32).not_null())
-                    .col(ColumnDef::new(Application::Name).string_len(32).not_null())
-                    .col(ColumnDef::new(Application::Host).string_len(255).not_null())
+                    .col(ColumnDef::new(Applications::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(Applications::HashSecret).char_len(32).not_null())
+                    .col(ColumnDef::new(Applications::Name).string_len(32).not_null())
+                    .col(ColumnDef::new(Applications::Host).string_len(255).not_null())
                     .col(
-                        ColumnDef::new(Application::CreatedAt)
+                        ColumnDef::new(Applications::CreatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(Application::UpdatedAt)
+                        ColumnDef::new(Applications::UpdatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(Application::DeletedAt)
+                        ColumnDef::new(Applications::DeletedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
@@ -47,32 +47,32 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(ApplicationSetting::Table)
+                    .table(ApplicationSettings::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(ApplicationSetting::Id)
+                        ColumnDef::new(ApplicationSettings::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(ApplicationSetting::Application).integer().not_null())
-                    .col(ColumnDef::new(ApplicationSetting::Hash).char_len(32).not_null())
-                    .col(ColumnDef::new(ApplicationSetting::Name).string().not_null())
+                    .col(ColumnDef::new(ApplicationSettings::Application).integer().not_null())
+                    .col(ColumnDef::new(ApplicationSettings::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationSettings::Name).string().not_null())
                     .col(
-                        ColumnDef::new(ApplicationSetting::CreatedAt)
+                        ColumnDef::new(ApplicationSettings::CreatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationSetting::UpdatedAt)
+                        ColumnDef::new(ApplicationSettings::UpdatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationSetting::DeletedAt)
+                        ColumnDef::new(ApplicationSettings::DeletedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
@@ -84,42 +84,37 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(ApplicationGlobalSetting::Table)
+                    .table(ApplicationGlobalSettings::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(ApplicationGlobalSetting::Id)
+                        ColumnDef::new(ApplicationGlobalSettings::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationGlobalSetting::Application)
+                        ColumnDef::new(ApplicationGlobalSettings::Application)
                             .integer()
                             .not_null(),
                     )
-                    .col(ColumnDef::new(ApplicationGlobalSetting::Hash).char_len(32).not_null())
-                    .col(ColumnDef::new(ApplicationGlobalSetting::Setting).integer().not_null())
+                    .col(ColumnDef::new(ApplicationGlobalSettings::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationGlobalSettings::Setting).integer().not_null())
+                    .col(ColumnDef::new(ApplicationGlobalSettings::Value).text().not_null())
                     .col(
-                        ColumnDef::new(ApplicationGlobalSetting::Value)
-                            .text()
-                            .not_null()
-                            .default(""),
-                    )
-                    .col(
-                        ColumnDef::new(ApplicationGlobalSetting::CreatedAt)
+                        ColumnDef::new(ApplicationGlobalSettings::CreatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationGlobalSetting::UpdatedAt)
+                        ColumnDef::new(ApplicationGlobalSettings::UpdatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationGlobalSetting::DeletedAt)
+                        ColumnDef::new(ApplicationGlobalSettings::DeletedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
@@ -152,12 +147,7 @@ impl MigrationTrait for Migration {
                             .not_null(),
                     )
                     .col(ColumnDef::new(ApplicationUserSettings::Setting).integer().not_null())
-                    .col(
-                        ColumnDef::new(ApplicationUserSettings::Value)
-                            .text()
-                            .not_null()
-                            .default(""),
-                    )
+                    .col(ColumnDef::new(ApplicationUserSettings::Value).text().not_null())
                     .col(
                         ColumnDef::new(ApplicationUserSettings::CreatedAt)
                             .big_integer()
@@ -183,32 +173,32 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(ApplicationProcess::Table)
+                    .table(ApplicationProcesses::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(ApplicationProcess::Id)
+                        ColumnDef::new(ApplicationProcesses::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(ApplicationProcess::Application).integer().not_null())
-                    .col(ColumnDef::new(ApplicationProcess::Hash).char_len(32).not_null())
-                    .col(ColumnDef::new(ApplicationProcess::Name).string().not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::Application).integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::Name).string().not_null())
                     .col(
-                        ColumnDef::new(ApplicationProcess::CreatedAt)
+                        ColumnDef::new(ApplicationProcesses::CreatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationProcess::UpdatedAt)
+                        ColumnDef::new(ApplicationProcesses::UpdatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationProcess::DeletedAt)
+                        ColumnDef::new(ApplicationProcesses::DeletedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
@@ -220,45 +210,40 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(ApplicationProcessLog::Table)
+                    .table(ApplicationProcessLogs::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(ApplicationProcessLog::Id)
+                        ColumnDef::new(ApplicationProcessLogs::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(ApplicationProcessLog::Application).integer().not_null())
-                    .col(ColumnDef::new(ApplicationProcessLog::Process).integer().not_null())
-                    .col(ColumnDef::new(ApplicationProcessLog::Hash).char_len(32).not_null())
-                    .col(ColumnDef::new(ApplicationProcessLog::HashSub).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationProcessLogs::Application).integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcessLogs::Process).integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcessLogs::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationProcessLogs::HashSub).char_len(32).not_null())
                     .col(
-                        ColumnDef::new(ApplicationProcessLog::Type)
+                        ColumnDef::new(ApplicationProcessLogs::Type)
                             .tiny_integer()
                             .not_null()
                             .unsigned(),
                     )
+                    .col(ColumnDef::new(ApplicationProcessLogs::Content).text().not_null())
                     .col(
-                        ColumnDef::new(ApplicationProcessLog::Content)
-                            .text()
-                            .not_null()
-                            .default(""),
-                    )
-                    .col(
-                        ColumnDef::new(ApplicationProcessLog::CreatedAt)
+                        ColumnDef::new(ApplicationProcessLogs::CreatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationProcessLog::UpdatedAt)
+                        ColumnDef::new(ApplicationProcessLogs::UpdatedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
                     )
                     .col(
-                        ColumnDef::new(ApplicationProcessLog::DeletedAt)
+                        ColumnDef::new(ApplicationProcessLogs::DeletedAt)
                             .big_integer()
                             .not_null()
                             .unsigned(),
@@ -271,15 +256,15 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         // application tables
         manager
-            .drop_table(Table::drop().table(Application::Table).to_owned())
+            .drop_table(Table::drop().table(Applications::Table).to_owned())
             .await?;
 
         manager
-            .drop_table(Table::drop().table(ApplicationSetting::Table).to_owned())
+            .drop_table(Table::drop().table(ApplicationSettings::Table).to_owned())
             .await?;
 
         manager
-            .drop_table(Table::drop().table(ApplicationGlobalSetting::Table).to_owned())
+            .drop_table(Table::drop().table(ApplicationGlobalSettings::Table).to_owned())
             .await?;
 
         manager
@@ -287,18 +272,17 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(ApplicationProcess::Table).to_owned())
+            .drop_table(Table::drop().table(ApplicationProcesses::Table).to_owned())
             .await?;
 
         manager
-            .drop_table(Table::drop().table(ApplicationProcessLog::Table).to_owned())
+            .drop_table(Table::drop().table(ApplicationProcessLogs::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-#[sea_orm(rename = "applications")]
-enum Application {
+enum Applications {
     Table,
     Id,
     Hash,
@@ -311,8 +295,7 @@ enum Application {
 }
 
 #[derive(DeriveIden)]
-#[sea_orm(rename = "application_settings")]
-enum ApplicationSetting {
+enum ApplicationSettings {
     Table,
     Id,
     Application,
@@ -324,8 +307,7 @@ enum ApplicationSetting {
 }
 
 #[derive(DeriveIden)]
-#[sea_orm(rename = "application_global_settings")]
-enum ApplicationGlobalSetting {
+enum ApplicationGlobalSettings {
     Table,
     Id,
     Application,
@@ -338,7 +320,6 @@ enum ApplicationGlobalSetting {
 }
 
 #[derive(DeriveIden)]
-#[sea_orm(rename = "application_user_settings")]
 enum ApplicationUserSettings {
     Table,
     Id,
@@ -353,8 +334,7 @@ enum ApplicationUserSettings {
 }
 
 #[derive(DeriveIden)]
-#[sea_orm(rename = "application_process")]
-enum ApplicationProcess {
+enum ApplicationProcesses {
     Table,
     Id,
     Application,
@@ -366,8 +346,7 @@ enum ApplicationProcess {
 }
 
 #[derive(DeriveIden)]
-#[sea_orm(rename = "application_process_logs")]
-enum ApplicationProcessLog {
+enum ApplicationProcessLogs {
     Table,
     Id,
     Application,
