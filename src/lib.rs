@@ -29,6 +29,9 @@ pub mod server;
 pub mod task_pool;
 pub mod util;
 
+pub use entities::prelude::*;
+//pub use sea_orm::EntityTrait;
+
 /// setups tracing and loads settings from the local .env file
 pub fn env() {
     // merge env file into std::env
@@ -36,4 +39,24 @@ pub fn env() {
 
     // setup better tracing
     tracing_subscriber::fmt::init();
+}
+
+#[cfg(test)]
+mod test {
+
+    use crate::database;
+    use crate::tokio;
+
+    #[tokio::test]
+    pub async fn test_app() {
+        let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
+        tracing::info!("Testing connection");
+        let r = db.ping().await;
+
+        if r.is_err() {
+            tracing::info!("Bad connection");
+        } else {
+            tracing::info!("Good connection");
+        }
+    }
 }

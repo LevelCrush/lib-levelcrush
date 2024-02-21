@@ -1,5 +1,3 @@
-pub mod destiny;
-
 /// u64 that represents the expected format of our unix timestamps
 pub type UnixTimestamp = i64;
 

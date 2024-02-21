@@ -1,35 +1,29 @@
-use sqlx::{
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
-    ConnectOptions, SqlitePool,
-};
-use std::{str::FromStr, time::Duration};
+use std::time::Duration;
+
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use tracing::log::LevelFilter;
 
-/// connects to the application database based off .env specific variables
-pub async fn connect<T: Into<String>>(database_url: T, max_connections: u32) -> SqlitePool {
-    let database_url = database_url.into();
-    let mut database_options = SqliteConnectOptions::from_str(database_url.as_str()).unwrap();
-    database_options = database_options.log_statements(LevelFilter::Off);
-    database_options = database_options.log_slow_statements(LevelFilter::Warn, Duration::from_secs(5));
-
+/// Connects to the database for this specific application.
+pub async fn connect<T: Into<String>>(database_url: T, max_connections: u32) -> DatabaseConnection {
     tracing::info!(
         "Allowing a maximum of {} total connections to the database",
         max_connections
     );
 
-    SqlitePoolOptions::new()
+    let database_url = database_url.into();
+    let mut database_options = ConnectOptions::new(database_url.as_str());
+    database_options
         .max_connections(max_connections)
-        .connect_with(database_options)
-        .await
-        .expect("Could not make database connection")
+        .sqlx_logging(false)
+        .sqlx_logging_level(LevelFilter::Off)
+        .sqlx_slow_statements_logging_settings(LevelFilter::Warn, Duration::from_secs(5));
 
-    // connect to database
-    /*
-    SqlitePool::connect_with(database_options)
+    Database::connect(database_options)
         .await
-        .expect("Could not make database connection") */
+        .expect("Failed to connect to database")
 }
 
+/*
 pub fn log_error<T>(query: Result<T, sqlx::Error>) {
     if let Err(query) = query {
         tracing::error!("{}", query);
@@ -64,3 +58,4 @@ pub fn need_retry<T>(query: &Result<T, sqlx::Error>) -> bool {
     }
     */
 }
+ */

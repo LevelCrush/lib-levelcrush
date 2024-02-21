@@ -2,41 +2,89 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "application_user_settings")]
+#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
+pub struct Entity;
+
+impl EntityName for Entity {
+    fn table_name(&self) -> &str {
+        "application_user_settings"
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
     pub id: i64,
     pub application: i64,
-    #[sea_orm(unique)]
     pub hash: String,
     pub hash_user: String,
     pub setting: i64,
-    #[sea_orm(column_type = "Text")]
     pub value: String,
     pub created_at: i64,
     pub updated_at: i64,
     pub deleted_at: i64,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
+pub enum Column {
+    Id,
+    Application,
+    Hash,
+    HashUser,
+    Setting,
+    Value,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
+pub enum PrimaryKey {
+    Id,
+}
+
+impl PrimaryKeyTrait for PrimaryKey {
+    type ValueType = i64;
+    fn auto_increment() -> bool {
+        true
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::application_settings::Entity",
-        from = "Column::Setting",
-        to = "super::application_settings::Column::Id",
-        on_update = "NoAction",
-        on_delete = "NoAction"
-    )]
     ApplicationSettings,
-    #[sea_orm(
-        belongs_to = "super::applications::Entity",
-        from = "Column::Application",
-        to = "super::applications::Column::Id",
-        on_update = "NoAction",
-        on_delete = "NoAction"
-    )]
     Applications,
+}
+
+impl ColumnTrait for Column {
+    type EntityName = Entity;
+    fn def(&self) -> ColumnDef {
+        match self {
+            Self::Id => ColumnType::BigInteger.def(),
+            Self::Application => ColumnType::BigInteger.def(),
+            Self::Hash => ColumnType::Char(Some(32u32)).def().unique(),
+            Self::HashUser => ColumnType::Char(Some(32u32)).def(),
+            Self::Setting => ColumnType::BigInteger.def(),
+            Self::Value => ColumnType::Text.def(),
+            Self::CreatedAt => ColumnType::BigInteger.def(),
+            Self::UpdatedAt => ColumnType::BigInteger.def(),
+            Self::DeletedAt => ColumnType::BigInteger.def(),
+        }
+    }
+}
+
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        match self {
+            Self::ApplicationSettings => Entity::belongs_to(super::application_settings::Entity)
+                .from(Column::Setting)
+                .to(super::application_settings::Column::Id)
+                .into(),
+            Self::Applications => Entity::belongs_to(super::applications::Entity)
+                .from(Column::Application)
+                .to(super::applications::Column::Id)
+                .into(),
+        }
+    }
 }
 
 impl Related<super::application_settings::Entity> for Entity {

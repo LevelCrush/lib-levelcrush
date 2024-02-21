@@ -2,12 +2,18 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "applications")]
+#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
+pub struct Entity;
+
+impl EntityName for Entity {
+    fn table_name(&self) -> &str {
+        "applications"
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
     pub id: i64,
-    #[sea_orm(unique)]
     pub hash: String,
     pub hash_secret: String,
     pub name: String,
@@ -17,18 +23,65 @@ pub struct Model {
     pub deleted_at: i64,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
+pub enum Column {
+    Id,
+    Hash,
+    HashSecret,
+    Name,
+    Host,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
+pub enum PrimaryKey {
+    Id,
+}
+
+impl PrimaryKeyTrait for PrimaryKey {
+    type ValueType = i64;
+    fn auto_increment() -> bool {
+        true
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::application_global_settings::Entity")]
     ApplicationGlobalSettings,
-    #[sea_orm(has_many = "super::application_process_logs::Entity")]
     ApplicationProcessLogs,
-    #[sea_orm(has_many = "super::application_processes::Entity")]
     ApplicationProcesses,
-    #[sea_orm(has_many = "super::application_settings::Entity")]
     ApplicationSettings,
-    #[sea_orm(has_many = "super::application_user_settings::Entity")]
     ApplicationUserSettings,
+}
+
+impl ColumnTrait for Column {
+    type EntityName = Entity;
+    fn def(&self) -> ColumnDef {
+        match self {
+            Self::Id => ColumnType::BigInteger.def(),
+            Self::Hash => ColumnType::Char(Some(32u32)).def().unique(),
+            Self::HashSecret => ColumnType::Char(Some(32u32)).def(),
+            Self::Name => ColumnType::String(Some(32u32)).def(),
+            Self::Host => ColumnType::String(Some(255u32)).def(),
+            Self::CreatedAt => ColumnType::BigInteger.def(),
+            Self::UpdatedAt => ColumnType::BigInteger.def(),
+            Self::DeletedAt => ColumnType::BigInteger.def(),
+        }
+    }
+}
+
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        match self {
+            Self::ApplicationGlobalSettings => Entity::has_many(super::application_global_settings::Entity).into(),
+            Self::ApplicationProcessLogs => Entity::has_many(super::application_process_logs::Entity).into(),
+            Self::ApplicationProcesses => Entity::has_many(super::application_processes::Entity).into(),
+            Self::ApplicationSettings => Entity::has_many(super::application_settings::Entity).into(),
+            Self::ApplicationUserSettings => Entity::has_many(super::application_user_settings::Entity).into(),
+        }
+    }
 }
 
 impl Related<super::application_global_settings::Entity> for Entity {
