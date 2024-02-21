@@ -110,6 +110,11 @@ impl MigrationTrait for Migration {
                             .col(ApplicationSettings::Name)
                             .unique(),
                     )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationSettings::Table, ApplicationSettings::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -169,6 +174,16 @@ impl MigrationTrait for Migration {
                             .col(ApplicationGlobalSettings::Application)
                             .col(ApplicationGlobalSettings::Setting)
                             .unique(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationGlobalSettings::Table, ApplicationGlobalSettings::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationGlobalSettings::Table, ApplicationGlobalSettings::Setting)
+                            .to(ApplicationSettings::Table, ApplicationSettings::Id),
                     )
                     .to_owned(),
             )
@@ -235,6 +250,16 @@ impl MigrationTrait for Migration {
                             .col(ApplicationUserSettings::Setting)
                             .unique(),
                     )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationUserSettings::Table, ApplicationUserSettings::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationUserSettings::Table, ApplicationUserSettings::Setting)
+                            .to(ApplicationSettings::Table, ApplicationSettings::Id),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -289,6 +314,11 @@ impl MigrationTrait for Migration {
                             .col(ApplicationProcesses::Application)
                             .col(ApplicationProcesses::Name)
                             .unique(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationProcesses::Table, ApplicationProcesses::Application)
+                            .to(Applications::Table, Applications::Id),
                     )
                     .to_owned(),
             )
@@ -380,9 +410,19 @@ impl MigrationTrait for Migration {
                             .col(ApplicationProcessLogs::Type)
                             .col(ApplicationProcessLogs::HashSub),
                     )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationProcessLogs::Table, ApplicationProcessLogs::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationProcessLogs::Table, ApplicationProcessLogs::Process)
+                            .to(ApplicationProcesses::Table, ApplicationProcesses::Id),
+                    )
                     .to_owned(),
             )
-            .await?;
+            .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
