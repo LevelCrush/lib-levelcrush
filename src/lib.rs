@@ -23,7 +23,7 @@ pub mod cache;
 pub mod database;
 pub mod entities;
 pub mod macros;
-pub mod queries;
+pub mod app;
 pub mod retry_lock;
 pub mod server;
 pub mod task_pool;
@@ -52,6 +52,8 @@ mod test {
         let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
         tracing::info!("Testing connection");
         let r = db.ping().await;
+
+        
 
         
 
