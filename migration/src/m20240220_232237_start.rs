@@ -13,7 +13,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(Applications::Id)
-                            .integer()
+                            .big_integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
@@ -51,12 +51,16 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(ApplicationSettings::Id)
-                            .integer()
+                            .big_integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(ApplicationSettings::Application).integer().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationSettings::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
                     .col(
                         ColumnDef::new(ApplicationSettings::Hash)
                             .char_len(32)
@@ -93,14 +97,14 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(ApplicationGlobalSettings::Id)
-                            .integer()
+                            .big_integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
                     .col(
                         ColumnDef::new(ApplicationGlobalSettings::Application)
-                            .integer()
+                            .big_integer()
                             .not_null(),
                     )
                     .col(
@@ -109,7 +113,11 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unique_key(),
                     )
-                    .col(ColumnDef::new(ApplicationGlobalSettings::Setting).integer().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::Setting)
+                            .big_integer()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(ApplicationGlobalSettings::Value).text().not_null())
                     .col(
                         ColumnDef::new(ApplicationGlobalSettings::CreatedAt)
@@ -140,14 +148,14 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(ApplicationUserSettings::Id)
-                            .integer()
+                            .big_integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
                     .col(
                         ColumnDef::new(ApplicationUserSettings::Application)
-                            .integer()
+                            .big_integer()
                             .not_null(),
                     )
                     .col(
@@ -161,7 +169,11 @@ impl MigrationTrait for Migration {
                             .char_len(32)
                             .not_null(),
                     )
-                    .col(ColumnDef::new(ApplicationUserSettings::Setting).integer().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::Setting)
+                            .big_integer()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(ApplicationUserSettings::Value).text().not_null())
                     .col(
                         ColumnDef::new(ApplicationUserSettings::CreatedAt)
@@ -192,12 +204,16 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(ApplicationProcesses::Id)
-                            .integer()
+                            .big_integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(ApplicationProcesses::Application).integer().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcesses::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
                     .col(
                         ColumnDef::new(ApplicationProcesses::Hash)
                             .char_len(32)
@@ -234,13 +250,17 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(ApplicationProcessLogs::Id)
-                            .integer()
+                            .big_integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(ApplicationProcessLogs::Application).integer().not_null())
-                    .col(ColumnDef::new(ApplicationProcessLogs::Process).integer().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(ApplicationProcessLogs::Process).big_integer().not_null())
                     .col(
                         ColumnDef::new(ApplicationProcessLogs::Hash)
                             .char_len(32)
