@@ -40,6 +40,14 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unsigned(),
                     )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-index-hash-hashsecret")
+                            .table(Applications::Table)
+                            .col(Applications::Hash)
+                            .col(Applications::HashSecret),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -85,6 +93,22 @@ impl MigrationTrait for Migration {
                             .big_integer()
                             .not_null()
                             .unsigned(),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-settings-app")
+                            .table(ApplicationSettings::Table)
+                            .col(ApplicationSettings::Application),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-settings-app-name")
+                            .table(ApplicationSettings::Table)
+                            .col(ApplicationSettings::Application)
+                            .col(ApplicationSettings::Name)
+                            .unique(),
                     )
                     .to_owned(),
             )
@@ -136,6 +160,15 @@ impl MigrationTrait for Migration {
                             .big_integer()
                             .not_null()
                             .unsigned(),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-globalsettings-app-setting")
+                            .table(ApplicationGlobalSettings::Table)
+                            .col(ApplicationGlobalSettings::Application)
+                            .col(ApplicationGlobalSettings::Setting)
+                            .unique(),
                     )
                     .to_owned(),
             )
@@ -193,6 +226,15 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unsigned(),
                     )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-usersettings-app-setting")
+                            .table(ApplicationUserSettings::Table)
+                            .col(ApplicationUserSettings::Application)
+                            .col(ApplicationUserSettings::Setting)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -238,6 +280,15 @@ impl MigrationTrait for Migration {
                             .big_integer()
                             .not_null()
                             .unsigned(),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-process-app-name")
+                            .table(ApplicationProcesses::Table)
+                            .col(ApplicationProcesses::Application)
+                            .col(ApplicationProcesses::Name)
+                            .unique(),
                     )
                     .to_owned(),
             )
@@ -293,140 +344,45 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unsigned(),
                     )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-type")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Type),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-type-hashsub")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Type)
+                            .col(ApplicationProcessLogs::HashSub),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-process-type")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Process)
+                            .col(ApplicationProcessLogs::Type),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-process-type-hashsub")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Process)
+                            .col(ApplicationProcessLogs::Type)
+                            .col(ApplicationProcessLogs::HashSub),
+                    )
                     .to_owned(),
             )
             .await?;
-
-        //
-        // Setup indexes
-        //
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-index-hash-hashsecret")
-                    .table(Applications::Table)
-                    .col(Applications::Hash)
-                    .col(Applications::HashSecret)
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-settings-app")
-                    .table(ApplicationSettings::Table)
-                    .col(ApplicationSettings::Application)
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-settings-app-name")
-                    .table(ApplicationSettings::Table)
-                    .col(ApplicationSettings::Application)
-                    .col(ApplicationSettings::Name)
-                    .unique()
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-globalsettings-app-setting")
-                    .table(ApplicationGlobalSettings::Table)
-                    .col(ApplicationGlobalSettings::Application)
-                    .col(ApplicationGlobalSettings::Setting)
-                    .unique()
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-usersettings-app-setting")
-                    .table(ApplicationUserSettings::Table)
-                    .col(ApplicationUserSettings::Application)
-                    .col(ApplicationUserSettings::Setting)
-                    .unique()
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-process-app-name")
-                    .table(ApplicationProcesses::Table)
-                    .col(ApplicationProcesses::Application)
-                    .col(ApplicationProcesses::Name)
-                    .unique()
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-processlog-app-type")
-                    .table(ApplicationProcessLogs::Table)
-                    .col(ApplicationProcessLogs::Application)
-                    .col(ApplicationProcessLogs::Type)
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-processlog-app-type-hashsub")
-                    .table(ApplicationProcessLogs::Table)
-                    .col(ApplicationProcessLogs::Application)
-                    .col(ApplicationProcessLogs::Type)
-                    .col(ApplicationProcessLogs::HashSub)
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-processlog-app-process-type")
-                    .table(ApplicationProcessLogs::Table)
-                    .col(ApplicationProcessLogs::Application)
-                    .col(ApplicationProcessLogs::Process)
-                    .col(ApplicationProcessLogs::Type)
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("app-processlog-app-process-type-hashsub")
-                    .table(ApplicationProcessLogs::Table)
-                    .col(ApplicationProcessLogs::Application)
-                    .col(ApplicationProcessLogs::Process)
-                    .col(ApplicationProcessLogs::Type)
-                    .col(ApplicationProcessLogs::HashSub)
-                    .to_owned(),
-            )
-            .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
