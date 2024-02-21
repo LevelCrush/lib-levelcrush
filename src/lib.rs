@@ -17,7 +17,6 @@ pub use urlencoding;
 pub use uuid;
 
 pub use levelcrush_macros as proc_macros;
-pub use {bigdecimal, bigdecimal::BigDecimal, sqlx, sqlx::Sqlite, sqlx::SqlitePool};
 
 pub mod alias;
 pub mod cache;
