@@ -53,6 +53,8 @@ mod test {
         tracing::info!("Testing connection");
         let r = db.ping().await;
 
+        
+
         if r.is_err() {
             tracing::info!("Bad connection");
         } else {
