@@ -5,6 +5,7 @@ edition = "2021"
 
 [lib]
 doctest = false
+name = "levelcrush"
 
 [workspace]
 members = ["migration", "entity", "."]

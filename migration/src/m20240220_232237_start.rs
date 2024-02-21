@@ -22,24 +22,9 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Applications::HashSecret).char_len(32).not_null())
                     .col(ColumnDef::new(Applications::Name).string_len(32).not_null())
                     .col(ColumnDef::new(Applications::Host).string_len(255).not_null())
-                    .col(
-                        ColumnDef::new(Applications::CreatedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
-                    .col(
-                        ColumnDef::new(Applications::UpdatedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
-                    .col(
-                        ColumnDef::new(Applications::DeletedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
+                    .col(ColumnDef::new(Applications::CreatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(Applications::UpdatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(Applications::DeletedAt).big_integer().not_null())
                     .index(
                         Index::create()
                             .if_not_exists()
@@ -76,24 +61,9 @@ impl MigrationTrait for Migration {
                             .unique_key(),
                     )
                     .col(ColumnDef::new(ApplicationSettings::Name).string().not_null())
-                    .col(
-                        ColumnDef::new(ApplicationSettings::CreatedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
-                    .col(
-                        ColumnDef::new(ApplicationSettings::UpdatedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
-                    .col(
-                        ColumnDef::new(ApplicationSettings::DeletedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
+                    .col(ColumnDef::new(ApplicationSettings::CreatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationSettings::UpdatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationSettings::DeletedAt).big_integer().not_null())
                     .index(
                         Index::create()
                             .if_not_exists()
@@ -151,20 +121,17 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(ApplicationGlobalSettings::CreatedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .col(
                         ColumnDef::new(ApplicationGlobalSettings::UpdatedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .col(
                         ColumnDef::new(ApplicationGlobalSettings::DeletedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .index(
                         Index::create()
@@ -226,20 +193,17 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(ApplicationUserSettings::CreatedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .col(
                         ColumnDef::new(ApplicationUserSettings::UpdatedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .col(
                         ColumnDef::new(ApplicationUserSettings::DeletedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .index(
                         Index::create()
@@ -288,24 +252,9 @@ impl MigrationTrait for Migration {
                             .unique_key(),
                     )
                     .col(ColumnDef::new(ApplicationProcesses::Name).string().not_null())
-                    .col(
-                        ColumnDef::new(ApplicationProcesses::CreatedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
-                    .col(
-                        ColumnDef::new(ApplicationProcesses::UpdatedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
-                    .col(
-                        ColumnDef::new(ApplicationProcesses::DeletedAt)
-                            .big_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
+                    .col(ColumnDef::new(ApplicationProcesses::CreatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::UpdatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::DeletedAt).big_integer().not_null())
                     .index(
                         Index::create()
                             .if_not_exists()
@@ -349,30 +298,22 @@ impl MigrationTrait for Migration {
                             .unique_key(),
                     )
                     .col(ColumnDef::new(ApplicationProcessLogs::HashSub).char_len(32).not_null())
-                    .col(
-                        ColumnDef::new(ApplicationProcessLogs::Type)
-                            .tiny_integer()
-                            .not_null()
-                            .unsigned(),
-                    )
+                    .col(ColumnDef::new(ApplicationProcessLogs::Type).tiny_integer().not_null())
                     .col(ColumnDef::new(ApplicationProcessLogs::Content).text().not_null())
                     .col(
                         ColumnDef::new(ApplicationProcessLogs::CreatedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .col(
                         ColumnDef::new(ApplicationProcessLogs::UpdatedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .col(
                         ColumnDef::new(ApplicationProcessLogs::DeletedAt)
                             .big_integer()
-                            .not_null()
-                            .unsigned(),
+                            .not_null(),
                     )
                     .index(
                         Index::create()
