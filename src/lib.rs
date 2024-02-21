@@ -22,6 +22,7 @@ pub use {bigdecimal, bigdecimal::BigDecimal, sqlx, sqlx::Sqlite, sqlx::SqlitePoo
 pub mod alias;
 pub mod cache;
 pub mod database;
+pub mod entities;
 pub mod macros;
 pub mod queries;
 pub mod retry_lock;
