@@ -56,6 +56,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
+                    .col(ColumnDef::new(ApplicationSetting::Application).integer().not_null())
                     .col(ColumnDef::new(ApplicationSetting::Hash).char_len(32).not_null())
                     .col(ColumnDef::new(ApplicationSetting::Name).string().not_null())
                     .col(
@@ -91,6 +92,11 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .auto_increment()
                             .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSetting::Application)
+                            .integer()
+                            .not_null(),
                     )
                     .col(ColumnDef::new(ApplicationGlobalSetting::Hash).char_len(32).not_null())
                     .col(ColumnDef::new(ApplicationGlobalSetting::Setting).integer().not_null())
@@ -134,7 +140,17 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::Application)
+                            .integer()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(ApplicationUserSettings::Hash).char_len(32).not_null())
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::HashUser)
+                            .char_len(32)
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(ApplicationUserSettings::Setting).integer().not_null())
                     .col(
                         ColumnDef::new(ApplicationUserSettings::Value)
@@ -162,10 +178,98 @@ impl MigrationTrait for Migration {
                     )
                     .to_owned(),
             )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationProcess::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ApplicationProcess::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(ApplicationProcess::Application).integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcess::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationProcess::Name).string().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcess::CreatedAt)
+                            .big_integer()
+                            .not_null()
+                            .unsigned(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcess::UpdatedAt)
+                            .big_integer()
+                            .not_null()
+                            .unsigned(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcess::DeletedAt)
+                            .big_integer()
+                            .not_null()
+                            .unsigned(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationProcessLog::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ApplicationProcessLog::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(ApplicationProcessLog::Application).integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcessLog::Process).integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcessLog::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationProcessLog::HashSub).char_len(32).not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcessLog::Type)
+                            .tiny_integer()
+                            .not_null()
+                            .unsigned(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcessLog::Content)
+                            .text()
+                            .not_null()
+                            .default(""),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcessLog::CreatedAt)
+                            .big_integer()
+                            .not_null()
+                            .unsigned(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcessLog::UpdatedAt)
+                            .big_integer()
+                            .not_null()
+                            .unsigned(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcessLog::DeletedAt)
+                            .big_integer()
+                            .not_null()
+                            .unsigned(),
+                    )
+                    .to_owned(),
+            )
             .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        // application tables
         manager
             .drop_table(Table::drop().table(Application::Table).to_owned())
             .await?;
@@ -180,6 +284,14 @@ impl MigrationTrait for Migration {
 
         manager
             .drop_table(Table::drop().table(ApplicationUserSettings::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(ApplicationProcess::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(ApplicationProcessLog::Table).to_owned())
             .await
     }
 }
@@ -203,6 +315,7 @@ enum Application {
 enum ApplicationSetting {
     Table,
     Id,
+    Application,
     Hash,
     Name,
     CreatedAt,
@@ -215,6 +328,7 @@ enum ApplicationSetting {
 enum ApplicationGlobalSetting {
     Table,
     Id,
+    Application,
     Hash,
     Setting,
     Value,
@@ -228,9 +342,40 @@ enum ApplicationGlobalSetting {
 enum ApplicationUserSettings {
     Table,
     Id,
+    Application,
     Hash,
+    HashUser,
     Setting,
     Value,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(DeriveIden)]
+#[sea_orm(rename = "application_process")]
+enum ApplicationProcess {
+    Table,
+    Id,
+    Application,
+    Hash,
+    Name,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(DeriveIden)]
+#[sea_orm(rename = "application_process_logs")]
+enum ApplicationProcessLog {
+    Table,
+    Id,
+    Application,
+    Process,
+    Type,
+    Hash,
+    HashSub,
+    Content,
     CreatedAt,
     UpdatedAt,
     DeletedAt,
