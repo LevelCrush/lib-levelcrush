@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr, RuntimeErr};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 use tracing::log::LevelFilter;
 
 /// Connects to the database for this specific application.
