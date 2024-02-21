@@ -12,7 +12,6 @@ members = ["migration", "."]
 
 
 [workspace.dependencies]
-entity = { path = "entity" }
 migration = { path = "migration" }
 levelcrush-macros = { git = "https://code.levelcrush.com/LevelCrush/lib-levelcrush-macros.git", rev = "67288bd0d7" }
 tower-http = { version = "0.4.2", features = [
@@ -58,7 +57,6 @@ urlencoding = { version = "2.1.2" }
 
 
 [dependencies]
-entity = { workspace = true }
 migration = { workspace = true }
 levelcrush-macros = { workspace = true }
 tower-http = { workspace = true }
