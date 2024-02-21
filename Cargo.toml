@@ -8,7 +8,7 @@ doctest = false
 name = "levelcrush"
 
 [workspace]
-members = ["migration", "entity", "."]
+members = ["migration", "."]
 
 
 [workspace.dependencies]
