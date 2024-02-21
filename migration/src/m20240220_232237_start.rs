@@ -410,7 +410,6 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // application tables
         manager
             .drop_table(Table::drop().table(Applications::Table).to_owned())
             .await?;
