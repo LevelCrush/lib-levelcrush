@@ -18,7 +18,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Applications::Hash).char_len(32).not_null())
+                    .col(ColumnDef::new(Applications::Hash).char_len(32).not_null().unique_key())
                     .col(ColumnDef::new(Applications::HashSecret).char_len(32).not_null())
                     .col(ColumnDef::new(Applications::Name).string_len(32).not_null())
                     .col(ColumnDef::new(Applications::Host).string_len(255).not_null())
@@ -57,7 +57,12 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(ApplicationSettings::Application).integer().not_null())
-                    .col(ColumnDef::new(ApplicationSettings::Hash).char_len(32).not_null())
+                    .col(
+                        ColumnDef::new(ApplicationSettings::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
                     .col(ColumnDef::new(ApplicationSettings::Name).string().not_null())
                     .col(
                         ColumnDef::new(ApplicationSettings::CreatedAt)
@@ -98,7 +103,12 @@ impl MigrationTrait for Migration {
                             .integer()
                             .not_null(),
                     )
-                    .col(ColumnDef::new(ApplicationGlobalSettings::Hash).char_len(32).not_null())
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
                     .col(ColumnDef::new(ApplicationGlobalSettings::Setting).integer().not_null())
                     .col(ColumnDef::new(ApplicationGlobalSettings::Value).text().not_null())
                     .col(
@@ -140,7 +150,12 @@ impl MigrationTrait for Migration {
                             .integer()
                             .not_null(),
                     )
-                    .col(ColumnDef::new(ApplicationUserSettings::Hash).char_len(32).not_null())
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
                     .col(
                         ColumnDef::new(ApplicationUserSettings::HashUser)
                             .char_len(32)
@@ -183,7 +198,12 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(ApplicationProcesses::Application).integer().not_null())
-                    .col(ColumnDef::new(ApplicationProcesses::Hash).char_len(32).not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcesses::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
                     .col(ColumnDef::new(ApplicationProcesses::Name).string().not_null())
                     .col(
                         ColumnDef::new(ApplicationProcesses::CreatedAt)
@@ -221,7 +241,12 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(ApplicationProcessLogs::Application).integer().not_null())
                     .col(ColumnDef::new(ApplicationProcessLogs::Process).integer().not_null())
-                    .col(ColumnDef::new(ApplicationProcessLogs::Hash).char_len(32).not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
                     .col(ColumnDef::new(ApplicationProcessLogs::HashSub).char_len(32).not_null())
                     .col(
                         ColumnDef::new(ApplicationProcessLogs::Type)
@@ -248,6 +273,137 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unsigned(),
                     )
+                    .to_owned(),
+            )
+            .await?;
+
+        //
+        // Setup indexes
+        //
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-index-hash-hashsecret")
+                    .table(Applications::Table)
+                    .col(Applications::Hash)
+                    .col(Applications::HashSecret)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-settings-app")
+                    .table(ApplicationSettings::Table)
+                    .col(ApplicationSettings::Application)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-settings-app-name")
+                    .table(ApplicationSettings::Table)
+                    .col(ApplicationSettings::Application)
+                    .col(ApplicationSettings::Name)
+                    .unique()
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-globalsettings-app-setting")
+                    .table(ApplicationGlobalSettings::Table)
+                    .col(ApplicationGlobalSettings::Application)
+                    .col(ApplicationGlobalSettings::Setting)
+                    .unique()
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-usersettings-app-setting")
+                    .table(ApplicationUserSettings::Table)
+                    .col(ApplicationUserSettings::Application)
+                    .col(ApplicationUserSettings::Setting)
+                    .unique()
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-process-app-name")
+                    .table(ApplicationProcesses::Table)
+                    .col(ApplicationProcesses::Application)
+                    .col(ApplicationProcesses::Name)
+                    .unique()
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-processlog-app-type")
+                    .table(ApplicationProcessLogs::Table)
+                    .col(ApplicationProcessLogs::Application)
+                    .col(ApplicationProcessLogs::Type)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-processlog-app-type-hashsub")
+                    .table(ApplicationProcessLogs::Table)
+                    .col(ApplicationProcessLogs::Application)
+                    .col(ApplicationProcessLogs::Type)
+                    .col(ApplicationProcessLogs::HashSub)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-processlog-app-process-type")
+                    .table(ApplicationProcessLogs::Table)
+                    .col(ApplicationProcessLogs::Application)
+                    .col(ApplicationProcessLogs::Process)
+                    .col(ApplicationProcessLogs::Type)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("app-processlog-app-process-type-hashsub")
+                    .table(ApplicationProcessLogs::Table)
+                    .col(ApplicationProcessLogs::Application)
+                    .col(ApplicationProcessLogs::Process)
+                    .col(ApplicationProcessLogs::Type)
+                    .col(ApplicationProcessLogs::HashSub)
                     .to_owned(),
             )
             .await
