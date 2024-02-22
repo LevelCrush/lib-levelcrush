@@ -118,6 +118,8 @@ where
 #[cfg(test)]
 mod tests {
 
+    use tracing_test::traced_test;
+
     use super::ApplicationState;
     use crate::app::process::LogLevel;
     use crate::app::Application;
@@ -133,6 +135,7 @@ mod tests {
         pub c: i32,
     }
 
+    #[traced_test]
     #[tokio::test]
     pub async fn appstate_test() {
         tracing::info!("Setting up database connection");
@@ -148,6 +151,7 @@ mod tests {
         let _ = state.database.close().await;
     }
 
+    #[traced_test]
     #[tokio::test]
     pub async fn appstate_noextension_test() {
         tracing::info!("Setting up database connection");
@@ -162,7 +166,7 @@ mod tests {
 
         let _ = state.database.close().await;
     }
-
+    #[traced_test]
     #[tokio::test]
     pub async fn app_register_test() {
         tracing::info!("Setting up database connection");
@@ -186,6 +190,7 @@ mod tests {
         let _ = handle.await;
     }
 
+    #[traced_test]
     #[tokio::test]
     pub async fn app_log_test() {
         tracing::info!("Setting up database connection");
