@@ -6,6 +6,10 @@ use entities::applications::Entity as ApplicationEntity;
 use sea_orm::{ActiveValue, ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
 use uuid::Uuid;
 
+use self::process::ApplicationProcess;
+
+pub mod process;
+
 #[derive(Clone)]
 pub struct ApplicationState<Extension>
 where
@@ -104,12 +108,19 @@ where
     pub fn host(&self) -> &str {
         self.record.host.as_str()
     }
+
+    /// get the desired process
+    pub async fn process(&self, name: &str) -> anyhow::Result<ApplicationProcess<Extension>> {
+        ApplicationProcess::get(self, name).await
+    }
 }
 
 #[cfg(test)]
 mod tests {
 
     use super::ApplicationState;
+    use crate::app::process::LogLevel;
+    use crate::app::Application;
     use crate::database;
     use crate::retry_lock::RetryLock;
     use crate::task_pool::TaskPool;
@@ -150,5 +161,28 @@ mod tests {
         };
 
         let _ = state.database.close().await;
+    }
+
+    #[tokio::test]
+    pub async fn app_register_test() {
+        tracing::info!("Setting up database connection");
+        let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
+        let state = ApplicationState::<()> {
+            database: db,
+            tasks: TaskPool::new(1),
+            locks: RetryLock::default(),
+            extension: (),
+        };
+
+        let app = Application::register("mock", "localhost", &state)
+            .await
+            .expect("Application did not create");
+
+        let global_process = app.process("global").await.expect("No process found or created");
+
+        // in this case we are going to opt to wait on the handle that returns
+        // but we do not need to actually do this in a real application
+        let handle = global_process.log(LogLevel::Info, "Hello World!", None);
+        let _ = handle.await;
     }
 }
