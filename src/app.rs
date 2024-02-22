@@ -185,4 +185,32 @@ mod tests {
         let handle = global_process.log(LogLevel::Info, "Hello World!", None);
         let _ = handle.await;
     }
+
+    #[tokio::test]
+    pub async fn app_log_test() {
+        tracing::info!("Setting up database connection");
+        let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
+        let state = ApplicationState::<()> {
+            database: db,
+            tasks: TaskPool::new(1),
+            locks: RetryLock::default(),
+            extension: (),
+        };
+
+        let app = Application::register("mock", "localhost", &state)
+            .await
+            .expect("Application did not create");
+
+        let global_process = app.process("global").await.expect("No process found or created");
+
+        // in this case we are going to opt to wait on the handle that returns
+        // but we do not need to actually do this in a real application
+        let mut logs = Vec::new();
+        logs.push(global_process.log(LogLevel::Info, "Hello World!", None));
+        logs.push(global_process.log(LogLevel::Warning, "Warn World!", None));
+        logs.push(global_process.log(LogLevel::Error, "Error World!", None));
+        logs.push(global_process.log(LogLevel::Debug, "Debug World!", None));
+
+        let _ = futures::future::join_all(logs).await;
+    }
 }
