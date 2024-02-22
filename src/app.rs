@@ -3,7 +3,7 @@ use crate::{entities, retry_lock::RetryLock, task_pool::TaskPool};
 use anyhow::anyhow;
 use entities::applications;
 use entities::applications::Entity as ApplicationEntity;
-use sea_orm::{ActiveValue, DatabaseConnection, EntityTrait};
+use sea_orm::{ActiveValue, ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -30,6 +30,7 @@ impl<Extension> Application<Extension>
 where
     Extension: Clone,
 {
+    /// register an application into the database
     pub async fn register(
         name: &str,
         host: &str,
@@ -53,10 +54,7 @@ where
             deleted_at: ActiveValue::Set(0),
         };
 
-        tracing::warn!("Registering new application...");
-        let app = applications::Entity::insert(new_app).exec(&app_state.database).await?;
-
-        tracing::info!("Attempting to get newly registered application");
+        let app = ApplicationEntity::insert(new_app).exec(&app_state.database).await?;
         let application = ApplicationEntity::find_by_id(app.last_insert_id)
             .one(&app_state.database)
             .await?;
@@ -69,6 +67,42 @@ where
         } else {
             Err(anyhow!("Failed to register application"))
         }
+    }
+
+    /// gets application record information based off the supplied identifiying hash and secret
+    pub async fn get(
+        hash: &str,
+        secret: &str,
+        app_state: &ApplicationState<Extension>,
+    ) -> anyhow::Result<Application<Extension>> {
+        let model = ApplicationEntity::find()
+            .filter(
+                Condition::all()
+                    .add(applications::Column::Hash.eq(hash))
+                    .add(applications::Column::HashSecret.eq(secret))
+                    .add(applications::Column::DeletedAt.eq(0)),
+            )
+            .one(&app_state.database)
+            .await?;
+
+        if let Some(record) = model {
+            Ok(Application {
+                state: app_state.clone(),
+                record,
+            })
+        } else {
+            Err(anyhow!("Unable to authorize application credentials"))
+        }
+    }
+
+    /// get the name of the application
+    pub fn name(&self) -> &str {
+        self.record.name.as_str()
+    }
+
+    /// get the host tied to the application
+    pub fn host(&self) -> &str {
+        self.record.host.as_str()
     }
 }
 
