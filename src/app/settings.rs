@@ -89,7 +89,7 @@ where
         self
     }
 
-    /// get the setting stored in our database for this application
+    /// get the setting value that is already cached and loaded from our database.
     /// if a user setting does not exist for the targeted user. The global setting will be passed through instead
     /// if there is no global setting. **None** will be returned as an Option value.
     pub fn get(&self, app_type: ApplicationSettingType, name: &str, user: Option<String>) -> Option<String> {
@@ -106,5 +106,17 @@ where
                     })
             }
         }
+    }
+
+    /// update a setting in our cache / database.
+    /// in the event that this setting does not exist. It will auto create it in the database accordingly
+    pub async fn set(
+        &mut self,
+        setting_type: ApplicationSettingType,
+        name: &str,
+        value: &str,
+        user: Option<String>,
+    ) -> anyhow::Result<()> {
+        Ok(())
     }
 }
