@@ -9,6 +9,7 @@ use uuid::Uuid;
 use self::process::ApplicationProcess;
 
 pub mod process;
+pub mod settings;
 
 #[derive(Clone)]
 pub struct ApplicationState<Extension>
