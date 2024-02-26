@@ -90,14 +90,20 @@ where
     }
 
     /// get the setting stored in our database for this application
-    pub async fn get(&self, app_type: ApplicationSettingType, name: &str, user: Option<String>) -> Option<String> {
+    /// if a user setting does not exist for the targeted user. The global setting will be passed through instead
+    /// if there is no global setting. **None** will be returned as an Option value.
+    pub fn get(&self, app_type: ApplicationSettingType, name: &str, user: Option<String>) -> Option<String> {
         match app_type {
             ApplicationSettingType::Global => self.global.get(name).map(|(setting, _)| setting.value.clone()),
             ApplicationSettingType::User => {
                 let user = user
                     .as_ref()
                     .map_or("".to_string(), |targeted_user| targeted_user.clone());
-                self.user.get(&user).map(|(setting, _)| setting.value.clone())
+                self.user
+                    .get(&user)
+                    .map_or(self.get(ApplicationSettingType::Global, name, None), |(setting, _)| {
+                        Some(setting.value.clone())
+                    })
             }
         }
     }
