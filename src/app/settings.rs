@@ -295,8 +295,10 @@ where
         let handle = match setting_type {
             ApplicationSettingType::Global => {
                 let active = self.global.get(name).map(|(m, _)| m.clone());
+
                 tokio::spawn(async move {
                     if let Some(active) = active {
+                        tracing::info!("Syncing setting: {:?}", active);
                         let mut active: application_global_settings::ActiveModel = active.into();
                         active.value = ActiveValue::Set(value_clone);
                         active.updated_at = ActiveValue::Set(unix_timestamp());
@@ -308,6 +310,7 @@ where
                 let target_user = user.as_ref().map_or(String::new(), |v| v.clone());
                 let target_key = (target_user.clone(), name.to_string());
                 let active = self.user.get(&target_key).map(|(m, _)| m.clone());
+
                 tokio::spawn(async move {
                     if let Some(active) = active {
                         let mut active: application_user_settings::ActiveModel = active.into();

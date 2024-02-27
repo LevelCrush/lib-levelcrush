@@ -79,7 +79,7 @@ where
         hash: &str,
         secret: &str,
         app_state: &ApplicationState<Extension>,
-    ) -> anyhow::Result<Application<Extension>> {
+    ) -> anyhow::Result<Option<Application<Extension>>> {
         let model = ApplicationEntity::find()
             .filter(
                 Condition::all()
@@ -91,12 +91,12 @@ where
             .await?;
 
         if let Some(record) = model {
-            Ok(Application {
+            Ok(Some(Application {
                 state: app_state.clone(),
                 record,
-            })
+            }))
         } else {
-            Err(anyhow!("Unable to authorize application credentials"))
+            Ok(None)
         }
     }
 
@@ -123,6 +123,7 @@ mod tests {
 
     use super::ApplicationState;
     use crate::app::process::LogLevel;
+    use crate::app::settings::{ApplicationSettingType, ApplicationSettings};
     use crate::app::Application;
     use crate::database;
     use crate::retry_lock::RetryLock;
@@ -203,7 +204,7 @@ mod tests {
             extension: (),
         };
 
-        let app = Application::register("mock", "localhost", &state)
+        let app = Application::register("mock_settings", "localhost", &state)
             .await
             .expect("Application did not create");
 
@@ -211,12 +212,103 @@ mod tests {
 
         // in this case we are going to opt to wait on the handle that returns
         // but we do not need to actually do this in a real application
-        let mut logs = Vec::new();
-        logs.push(global_process.log(LogLevel::Info, "Hello World!", None));
-        logs.push(global_process.log(LogLevel::Warning, "Warn World!", None));
-        logs.push(global_process.log(LogLevel::Error, "Error World!", None));
-        logs.push(global_process.log(LogLevel::Debug, "Debug World!", None));
+        let mut handles = Vec::new();
+        handles.push(global_process.log(LogLevel::Info, "Hello World!", None));
+        handles.push(global_process.log(LogLevel::Warning, "Warn World!", None));
+        handles.push(global_process.log(LogLevel::Error, "Error World!", None));
+        handles.push(global_process.log(LogLevel::Debug, "Debug World!", None));
 
-        let _ = futures::future::join_all(logs).await;
+        let _ = futures::future::join_all(handles).await;
+    }
+
+    /// this is a bad test. It is really just here to test functionality.
+    /// todo: rewrite this for proper test
+    #[traced_test]
+    #[tokio::test]
+
+    pub async fn appsetting_test() -> anyhow::Result<()> {
+        tracing::info!("Beginning setting test");
+
+        let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
+        let state = ApplicationState::<()> {
+            database: db,
+            tasks: TaskPool::new(1),
+            locks: RetryLock::default(),
+            extension: (),
+        };
+
+        let app = if let Some(app) = Application::get(
+            "d1df99152d4e95df36d8986db4f607cd",
+            "a84d755d6764326ab4979face8fb2e4d",
+            &state,
+        )
+        .await?
+        {
+            tracing::info!("found existing application");
+            app
+        } else {
+            tracing::info!("Registering new application");
+            Application::register("mock_test", "localhost", &state)
+                .await
+                .expect("Application did not create")
+        };
+
+        let global_process = app.process("global").await.expect("No process found or created");
+
+        let _ = global_process
+            .log(LogLevel::Info, "Starting to load settings", None)
+            .await;
+
+        tracing::info!("Loading application settings");
+
+        let mut settings = ApplicationSettings::load(&app).await?;
+
+        // precheck settings
+        let test1 = settings.get(ApplicationSettingType::Global, "mock.test1", None);
+        let test2 = settings.get(ApplicationSettingType::Global, "mock.test2", None);
+
+        tracing::info!("Test pre");
+        tracing::info!("{:?}", test1);
+        tracing::info!("{:?}", test2);
+
+        // set default settings
+        futures::future::join_all(vec![
+            settings
+                .set(ApplicationSettingType::Global, "mock.test1", "hello world", None)
+                .await?,
+            settings
+                .set(ApplicationSettingType::Global, "mock.test2", "foobar", None)
+                .await?,
+        ])
+        .await;
+
+        // load global settings
+        let test1 = settings.get(ApplicationSettingType::Global, "mock.test1", None);
+        let test2 = settings.get(ApplicationSettingType::Global, "mock.test2", None);
+
+        tracing::info!("Test post");
+        tracing::info!("{:?}", test1);
+        tracing::info!("{:?}", test2);
+
+        tracing::info!("Modifying set");
+        futures::future::join_all(vec![
+            settings
+                .set(ApplicationSettingType::Global, "mock.test1", "modified test 1", None)
+                .await?,
+            settings
+                .set(ApplicationSettingType::Global, "mock.test2", "modified test 2", None)
+                .await?,
+        ])
+        .await;
+
+        // load global settings
+        let test1 = settings.get(ApplicationSettingType::Global, "mock.test1", None);
+        let test2 = settings.get(ApplicationSettingType::Global, "mock.test2", None);
+
+        tracing::info!("Test mod");
+        tracing::info!("{:?}", test1);
+        tracing::info!("{:?}", test2);
+
+        Ok(())
     }
 }
