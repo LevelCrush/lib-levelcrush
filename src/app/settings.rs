@@ -289,9 +289,8 @@ where
             }
         }
 
-        // update in database now, but fire off into its own task
+        // update in database now, but fire off into its own task. We don't need to wait for this to occur technically.
         let db_handle = self.application.state.database.clone();
-
         let value_clone = value.to_string();
         let handle = match setting_type {
             ApplicationSettingType::Global => {
