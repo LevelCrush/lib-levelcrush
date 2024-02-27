@@ -238,8 +238,8 @@ mod tests {
         };
 
         let app = if let Some(app) = Application::get(
-            "d1df99152d4e95df36d8986db4f607cd",
-            "a84d755d6764326ab4979face8fb2e4d",
+            "d1df99152d4e95df36d8986db4f607cd", // replace with your own hash
+            "a84d755d6764326ab4979face8fb2e4d", // replace with your own hash secret
             &state,
         )
         .await?
