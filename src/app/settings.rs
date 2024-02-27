@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use anyhow::anyhow;
-use sea_orm::{ActiveValue, ColumnTrait, Condition, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ActiveValue, ColumnTrait, Condition, EntityTrait, QueryFilter};
+use tokio::task::JoinHandle;
 
 use super::Application;
 use crate::{
@@ -117,7 +118,7 @@ where
         name: &str,
         value: &str,
         user: Option<String>,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<JoinHandle<()>> {
         let timestamp = unix_timestamp();
         let setting_model = if let Some((model, timestamp)) = self.base.get(name) {
             Some(model.clone())
@@ -151,56 +152,88 @@ where
         // create if neccessary
         match setting_type {
             ApplicationSettingType::Global => {
-                let seed = format!("{}|{}|global|{}", timestamp, self.application.record.id, name);
-                let hash = format!("{:x}", md5::compute(seed));
-
-                let active = application_global_settings::ActiveModel {
-                    id: ActiveValue::NotSet,
-                    application: ActiveValue::Set(self.application.record.id),
-                    hash: ActiveValue::Set(hash),
-                    setting: ActiveValue::Set(setting_id),
-                    value: ActiveValue::Set(value.to_string()),
-                    created_at: ActiveValue::Set(timestamp),
-                    updated_at: ActiveValue::Set(0),
-                    deleted_at: ActiveValue::Set(0),
+                let do_create = if let Some((model, _)) = self.global.get(name) {
+                    model.id == 0
+                } else {
+                    true
                 };
 
-                let insert = application_global_settings::Entity::insert(active)
-                    .exec(&self.application.state.database)
-                    .await?;
-                let model = application_global_settings::Entity::find_by_id(insert.last_insert_id)
-                    .one(&self.application.state.database)
-                    .await?;
+                if do_create {
+                    let seed = format!("{}|{}|global|{}", timestamp, self.application.record.id, name);
+                    let hash = format!("{:x}", md5::compute(seed));
+                    let active = application_global_settings::ActiveModel {
+                        id: ActiveValue::NotSet,
+                        application: ActiveValue::Set(self.application.record.id),
+                        hash: ActiveValue::Set(hash),
+                        setting: ActiveValue::Set(setting_id),
+                        value: ActiveValue::Set(value.to_string()),
+                        created_at: ActiveValue::Set(timestamp),
+                        updated_at: ActiveValue::Set(0),
+                        deleted_at: ActiveValue::Set(0),
+                    };
 
-                if let Some(model) = model {
-                    self.global.insert(name.to_string(), (model, timestamp));
+                    let insert = application_global_settings::Entity::insert(active)
+                        .exec(&self.application.state.database)
+                        .await?;
+                    let model = application_global_settings::Entity::find_by_id(insert.last_insert_id)
+                        .one(&self.application.state.database)
+                        .await?;
+
+                    if let Some(model) = model {
+                        self.global
+                            .entry(name.to_string())
+                            .and_modify(|(old_model, model_timestamp)| {
+                                *model_timestamp = timestamp;
+                                old_model.id = model.id;
+                                old_model.hash = model.hash.clone();
+                            })
+                            .or_insert((model, timestamp));
+                    }
                 }
             }
             ApplicationSettingType::User => {
-                let seed = format!("{}|{}|user|{}", timestamp, self.application.record.id, name);
-                let hash = format!("{:x}", md5::compute(seed));
                 let target_user = user.as_ref().map_or(String::new(), |v| v.clone());
-                let active = application_user_settings::ActiveModel {
-                    id: ActiveValue::NotSet,
-                    application: ActiveValue::Set(self.application.record.id),
-                    hash: ActiveValue::Set(hash),
-                    hash_user: ActiveValue::Set(target_user.clone()),
-                    setting: ActiveValue::Set(setting_id),
-                    value: ActiveValue::Set(value.to_string()),
-                    created_at: ActiveValue::Set(timestamp),
-                    updated_at: ActiveValue::Set(0),
-                    deleted_at: ActiveValue::Set(0),
+                let target_key = (target_user.clone(), name.to_string());
+                let do_create = if let Some((model, _)) = self.user.get(&target_key) {
+                    model.id == 0
+                } else {
+                    true
                 };
 
-                let insert = application_user_settings::Entity::insert(active)
-                    .exec(&self.application.state.database)
-                    .await?;
-                let model = application_user_settings::Entity::find_by_id(insert.last_insert_id)
-                    .one(&self.application.state.database)
-                    .await?;
+                if do_create {
+                    let seed = format!("{}|{}|user|{}", timestamp, self.application.record.id, name);
+                    let hash = format!("{:x}", md5::compute(seed));
 
-                if let Some(model) = model {
-                    self.user.insert((target_user, name.to_string()), (model, timestamp));
+                    let active = application_user_settings::ActiveModel {
+                        id: ActiveValue::NotSet,
+                        application: ActiveValue::Set(self.application.record.id),
+                        hash: ActiveValue::Set(hash),
+                        hash_user: ActiveValue::Set(target_user.clone()),
+                        setting: ActiveValue::Set(setting_id),
+                        value: ActiveValue::Set(value.to_string()),
+                        created_at: ActiveValue::Set(timestamp),
+                        updated_at: ActiveValue::Set(0),
+                        deleted_at: ActiveValue::Set(0),
+                    };
+
+                    let insert = application_user_settings::Entity::insert(active)
+                        .exec(&self.application.state.database)
+                        .await?;
+                    let model = application_user_settings::Entity::find_by_id(insert.last_insert_id)
+                        .one(&self.application.state.database)
+                        .await?;
+
+                    if let Some(model) = model {
+                        self.user
+                            .entry(target_key)
+                            .and_modify(|(old_model, model_timestamp)| {
+                                *model_timestamp = timestamp;
+                                old_model.id = model.id;
+                                old_model.hash = model.hash.clone();
+                                old_model.hash_user = model.hash_user.clone();
+                            })
+                            .or_insert((model, timestamp));
+                    }
                 }
             }
         }
@@ -228,12 +261,12 @@ where
                         },
                         timestamp,
                     ));
-                Ok(())
             }
             ApplicationSettingType::User => {
                 let target_user = user.as_ref().map_or(String::new(), |v| v.clone());
+                let target_key = (target_user.clone(), name.to_string());
                 self.user
-                    .entry((target_user.clone(), name.to_string()))
+                    .entry(target_key)
                     .and_modify(|(model, model_timestamp)| {
                         *model_timestamp = timestamp;
                         model.value = value.to_string();
@@ -244,7 +277,7 @@ where
                             id: 0,
                             application: self.application.record.id,
                             hash: String::new(),
-                            hash_user: user.unwrap_or_default(),
+                            hash_user: target_user.clone(),
                             setting: setting_id,
                             value: value.to_string(),
                             created_at: timestamp,
@@ -253,8 +286,40 @@ where
                         },
                         timestamp,
                     ));
-                Ok(())
             }
         }
+
+        // update in database now, but fire off into its own task
+        let db_handle = self.application.state.database.clone();
+
+        let value_clone = value.to_string();
+        let handle = match setting_type {
+            ApplicationSettingType::Global => {
+                let active = self.global.get(name).map(|(m, _)| m.clone());
+                tokio::spawn(async move {
+                    if let Some(active) = active {
+                        let mut active: application_global_settings::ActiveModel = active.into();
+                        active.value = ActiveValue::Set(value_clone);
+                        active.updated_at = ActiveValue::Set(unix_timestamp());
+                        let _ = active.update(&db_handle).await;
+                    }
+                })
+            }
+            ApplicationSettingType::User => {
+                let target_user = user.as_ref().map_or(String::new(), |v| v.clone());
+                let target_key = (target_user.clone(), name.to_string());
+                let active = self.user.get(&target_key).map(|(m, _)| m.clone());
+                tokio::spawn(async move {
+                    if let Some(active) = active {
+                        let mut active: application_user_settings::ActiveModel = active.into();
+                        active.value = ActiveValue::Set(value_clone);
+                        active.updated_at = ActiveValue::Set(unix_timestamp());
+                        let _ = active.update(&db_handle).await;
+                    }
+                })
+            }
+        };
+
+        Ok(handle)
     }
 }
