@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use anyhow::anyhow;
 use sea_orm::{ActiveModelTrait, ActiveValue, ColumnTrait, Condition, EntityTrait, QueryFilter};
 use tokio::task::JoinHandle;
+use uuid::Uuid;
 
 use super::Application;
 use crate::{
@@ -91,6 +92,18 @@ where
         self
     }
 
+    /// gets a global specific setting value
+    /// if there is no matching setting with that name, None is returned.
+    pub fn get_global(&self, name: &str) -> Option<String> {
+        self.get(ApplicationSettingType::Global, name, None)
+    }
+
+    /// gets a user application setting. If no user setting can be found. Falls back to the global setting
+    /// if no global setting is found. None is returned
+    pub fn get_user(&self, user: &str, setting_name: &str) -> Option<String> {
+        self.get(ApplicationSettingType::User, setting_name, Some(user.to_string()))
+    }
+
     /// get the setting value that is already cached and loaded from our database.
     /// if a user setting does not exist for the targeted user. The global setting will be passed through instead
     /// if there is no global setting. **None** will be returned as an Option value.
@@ -123,7 +136,13 @@ where
         let setting_model = if let Some((model, timestamp)) = self.base.get(name) {
             Some(model.clone())
         } else {
-            let seed = format!("{}|{}|{}", timestamp, self.application.record.id, name);
+            let seed = format!(
+                "{}|{}|core|{}|{}",
+                timestamp,
+                self.application.record.id,
+                name,
+                Uuid::new_v4()
+            );
             let hash = format!("{:x}", md5::compute(seed));
 
             // create model
@@ -141,9 +160,15 @@ where
             let insert = application_settings::Entity::insert(core_model)
                 .exec(&self.application.state.database)
                 .await?;
-            application_settings::Entity::find_by_id(insert.last_insert_id)
+            let model = application_settings::Entity::find_by_id(insert.last_insert_id)
                 .one(&self.application.state.database)
-                .await?
+                .await?;
+
+            if let Some(model) = model.as_ref() {
+                self.base.insert(name.to_string(), (model.clone(), timestamp));
+            }
+
+            model
         };
 
         // map the setting out out of the setting model if possible
@@ -159,7 +184,13 @@ where
                 };
 
                 if do_create {
-                    let seed = format!("{}|{}|global|{}", timestamp, self.application.record.id, name);
+                    let seed = format!(
+                        "{}|{}|global|{}|{}",
+                        timestamp,
+                        self.application.record.id,
+                        name,
+                        Uuid::new_v4()
+                    );
                     let hash = format!("{:x}", md5::compute(seed));
                     let active = application_global_settings::ActiveModel {
                         id: ActiveValue::NotSet,
@@ -201,7 +232,13 @@ where
                 };
 
                 if do_create {
-                    let seed = format!("{}|{}|user|{}", timestamp, self.application.record.id, name);
+                    let seed = format!(
+                        "{}|{}|user|{}|{}",
+                        timestamp,
+                        self.application.record.id,
+                        name,
+                        Uuid::new_v4()
+                    );
                     let hash = format!("{:x}", md5::compute(seed));
 
                     let active = application_user_settings::ActiveModel {

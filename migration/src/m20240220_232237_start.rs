@@ -212,6 +212,7 @@ impl MigrationTrait for Migration {
                             .table(ApplicationUserSettings::Table)
                             .col(ApplicationUserSettings::Application)
                             .col(ApplicationUserSettings::Setting)
+                            .col(ApplicationUserSettings::HashUser)
                             .unique(),
                     )
                     .foreign_key(

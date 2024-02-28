@@ -225,7 +225,6 @@ mod tests {
     /// todo: rewrite this for proper test
     #[traced_test]
     #[tokio::test]
-
     pub async fn appsetting_test() -> anyhow::Result<()> {
         tracing::info!("Beginning setting test");
 
@@ -255,17 +254,17 @@ mod tests {
 
         let global_process = app.process("global").await.expect("No process found or created");
 
-        let _ = global_process
+        global_process
             .log(LogLevel::Info, "Starting to load settings", None)
-            .await;
+            .await?;
 
         tracing::info!("Loading application settings");
 
         let mut settings = ApplicationSettings::load(&app).await?;
 
         // precheck settings
-        let test1 = settings.get(ApplicationSettingType::Global, "mock.test1", None);
-        let test2 = settings.get(ApplicationSettingType::Global, "mock.test2", None);
+        let test1 = settings.get_global("mock.test1");
+        let test2 = settings.get_global("mock.test2");
 
         tracing::info!("Test pre");
         tracing::info!("{:?}", test1);
@@ -286,8 +285,8 @@ mod tests {
         .await;
 
         // load global settings
-        let test1 = settings.get(ApplicationSettingType::Global, "mock.test1", None);
-        let test2 = settings.get(ApplicationSettingType::Global, "mock.test2", None);
+        let test1 = settings.get_global("mock.test1");
+        let test2 = settings.get_global("mock.test2");
 
         tracing::info!("Test post");
         tracing::info!("{:?}", test1);
@@ -305,8 +304,8 @@ mod tests {
         .await;
 
         // load global settings
-        let test1 = settings.get(ApplicationSettingType::Global, "mock.test1", None);
-        let test2 = settings.get(ApplicationSettingType::Global, "mock.test2", None);
+        let test1 = settings.get_global("mock.test1");
+        let test2 = settings.get_global("mock.test2");
 
         tracing::info!("Test global mod");
         tracing::info!("{:?}", test1);
@@ -334,9 +333,9 @@ mod tests {
         .await;
 
         // load global settings
-        let test1 = settings.get(ApplicationSettingType::User, "mock.test1", Some("123".to_string()));
-        let test2 = settings.get(ApplicationSettingType::User, "mock.test2", Some("123".to_string()));
-        let test3 = settings.get(ApplicationSettingType::User, "mock.test3", Some("123".to_string()));
+        let test1 = settings.get_user("123", "mock.test1");
+        let test2 = settings.get_user("123", "mock.test2");
+        let test3 = settings.get_user("123", "mock.test3");
         tracing::info!("Test user  mod");
         tracing::info!("{:?}", test1);
         tracing::info!("{:?}", test2);
