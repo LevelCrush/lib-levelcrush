@@ -279,6 +279,9 @@ mod tests {
             settings
                 .set(ApplicationSettingType::Global, "mock.test2", "foobar", None)
                 .await?,
+            settings
+                .set(ApplicationSettingType::Global, "mock.test3", "global_happy", None)
+                .await?,
         ])
         .await;
 
@@ -305,10 +308,39 @@ mod tests {
         let test1 = settings.get(ApplicationSettingType::Global, "mock.test1", None);
         let test2 = settings.get(ApplicationSettingType::Global, "mock.test2", None);
 
-        tracing::info!("Test mod");
+        tracing::info!("Test global mod");
         tracing::info!("{:?}", test1);
         tracing::info!("{:?}", test2);
 
+        tracing::info!("Setting user settings");
+        futures::future::join_all(vec![
+            settings
+                .set(
+                    ApplicationSettingType::User,
+                    "mock.test1",
+                    "user test 1",
+                    Some("123".to_string()),
+                )
+                .await?,
+            settings
+                .set(
+                    ApplicationSettingType::User,
+                    "mock.test2",
+                    "user test 2",
+                    Some("123".to_string()),
+                )
+                .await?,
+        ])
+        .await;
+
+        // load global settings
+        let test1 = settings.get(ApplicationSettingType::User, "mock.test1", Some("123".to_string()));
+        let test2 = settings.get(ApplicationSettingType::User, "mock.test2", Some("123".to_string()));
+        let test3 = settings.get(ApplicationSettingType::User, "mock.test3", Some("123".to_string()));
+        tracing::info!("Test user  mod");
+        tracing::info!("{:?}", test1);
+        tracing::info!("{:?}", test2);
+        tracing::info!("{:?}", test3);
         Ok(())
     }
 }
