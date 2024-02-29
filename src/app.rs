@@ -1,9 +1,10 @@
 use crate::util::unix_timestamp;
 use crate::{entities, retry_lock::RetryLock, task_pool::TaskPool};
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 use entities::applications;
 use entities::applications::Entity as ApplicationEntity;
-use sea_orm::{ActiveValue, ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
+use migration::IndexCreateStatement;
+use sea_orm::{ActiveModelTrait, ActiveValue, ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
 use uuid::Uuid;
 
 use self::process::ApplicationProcess;
@@ -72,6 +73,27 @@ where
         } else {
             Err(anyhow!("Failed to register application"))
         }
+    }
+
+    /// regenerate the secret tied to this application.
+    /// useful in case credentials get leaked
+    pub async fn regen_hashes(&mut self) -> anyhow::Result<()> {
+        let timestamp = unix_timestamp();
+        let name = self.record.name.clone();
+        let host = self.record.host.clone();
+        let seed = format!("{}||{}||{}||{}", timestamp, name, host, Uuid::new_v4());
+        let seed_secret = format!("{}{}{}{}{}", seed, timestamp, name, timestamp, Uuid::new_v4());
+        let hash = format!("{:x}", md5::compute(seed));
+        let hash_secret = format!("{:x}", md5::compute(seed_secret));
+
+        self.record.hash = hash;
+        self.record.hash_secret = hash_secret;
+        self.record.updated_at = unix_timestamp();
+
+        let active: applications::ActiveModel = self.record.clone().into();
+        active.save(&self.state.database).await?;
+
+        Ok(())
     }
 
     /// gets application record information based off the supplied identifiying hash and secret
