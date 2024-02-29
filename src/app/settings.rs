@@ -133,7 +133,7 @@ where
         user: Option<String>,
     ) -> anyhow::Result<JoinHandle<()>> {
         let timestamp = unix_timestamp();
-        let setting_model = if let Some((model, timestamp)) = self.base.get(name) {
+        let setting_model = if let Some((model, model_timestamp)) = self.base.get(name) {
             Some(model.clone())
         } else {
             let seed = format!(
@@ -206,6 +206,7 @@ where
                     let insert = application_global_settings::Entity::insert(active)
                         .exec(&self.application.state.database)
                         .await?;
+
                     let model = application_global_settings::Entity::find_by_id(insert.last_insert_id)
                         .one(&self.application.state.database)
                         .await?;
@@ -243,6 +244,11 @@ where
                         )
                         .one(&self.application.state.database)
                         .await?;
+                    // if we do have a user model, store in our cache for later
+                    if let Some(target_user_model) = target_user_model.as_ref() {
+                        self.user
+                            .insert(target_key.clone(), (target_user_model.clone(), timestamp));
+                    }
                 }
 
                 let do_create = target_user_model.is_none();
