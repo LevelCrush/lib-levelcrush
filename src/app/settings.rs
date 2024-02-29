@@ -225,11 +225,27 @@ where
             ApplicationSettingType::User => {
                 let target_user = user.as_ref().map_or(String::new(), |v| v.clone());
                 let target_key = (target_user.clone(), name.to_string());
-                let do_create = if let Some((model, _)) = self.user.get(&target_key) {
+
+                let do_search = if let Some((model, _)) = self.user.get(&target_key) {
                     model.id == 0
                 } else {
                     true
                 };
+
+                let mut target_user_model = None;
+                if do_search {
+                    target_user_model = application_user_settings::Entity::find()
+                        .filter(
+                            Condition::all()
+                                .add(application_user_settings::Column::Application.eq(self.application.record.id))
+                                .add(application_user_settings::Column::Setting.eq(setting_id))
+                                .add(application_user_settings::Column::HashUser.eq(target_user.clone())),
+                        )
+                        .one(&self.application.state.database)
+                        .await?;
+                }
+
+                let do_create = target_user_model.is_none();
 
                 if do_create {
                     let seed = format!(
