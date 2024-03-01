@@ -123,6 +123,17 @@ where
         }
     }
 
+    /// globally set a application setting
+    pub async fn set_global(&mut self, name: &str, value: &str) -> anyhow::Result<JoinHandle<()>> {
+        self.set(ApplicationSettingType::Global, name, value, None).await
+    }
+
+    /// at the application user level, set the application setting
+    pub async fn set_user(&mut self, user: &str, name: &str, value: &str) -> anyhow::Result<JoinHandle<()>> {
+        self.set(ApplicationSettingType::User, name, value, Some(user.to_string()))
+            .await
+    }
+
     /// update a setting in our cache / database.
     /// in the event that this setting does not exist. It will auto create it in the database accordingly
     pub async fn set(
