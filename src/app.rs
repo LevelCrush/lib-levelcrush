@@ -122,6 +122,12 @@ where
         }
     }
 
+    /// Attempts to autoload  the application based off the application .env settings
+    /// If no application can be found. It will register a new one and save the files into the .env
+    pub async fn env() -> anyhow::Result<()> {
+        Ok(())
+    }
+
     /// get the name of the application
     pub fn name(&self) -> &str {
         self.record.name.as_str()

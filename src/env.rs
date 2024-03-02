@@ -12,6 +12,12 @@ pub enum EnvVar {
     /// APPLICATION_SECRET
     ApplicationSecret,
 
+    /// APPLICATION_NAME
+    ApplicationName,
+
+    /// APPLICATION_HOST
+    ApplicationHost,
+
     /// This is a catch all. It has no direct map.
     Custom(&'static str),
 }
@@ -23,6 +29,8 @@ impl From<EnvVar> for &'static str {
             EnvVar::DatabaseUrlCore => "DATABASE_URL_CORE",
             EnvVar::ApplicationID => "APPLICATION_ID",
             EnvVar::ApplicationSecret => "APPLICATION_SECRET",
+            EnvVar::ApplicationHost => "APPLICATION_HOST",
+            EnvVar::ApplicationName => "APPLICATION_NAME",
             EnvVar::Custom(key) => key, // just pass through the setting
         }
     }
@@ -35,6 +43,8 @@ impl From<&'static str> for EnvVar {
             "DATABASE_URL_CORE" => EnvVar::DatabaseUrlCore,
             "APPLICATION_ID" => EnvVar::ApplicationID,
             "APPLICATION_SECRET" => EnvVar::DatabaseUrlSelf,
+            "APPLICATION_HOST" => EnvVar::ApplicationHost,
+            "APPLICATION_NAME" => EnvVar::ApplicationName,
             data => EnvVar::Custom(data),
         }
     }
