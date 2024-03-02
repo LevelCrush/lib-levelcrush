@@ -74,8 +74,7 @@ impl<T: serde::ser::Serialize> APIResponse<T> {
     }
 }
 
-async fn setup_session_layer() -> SessionLayer<MemoryStore> {
-    let secret = std::env::var("SERVER_SECRET").unwrap_or_default();
+async fn setup_session_layer(secret: String) -> SessionLayer<MemoryStore> {
     let store = MemoryStore::new();
     SessionLayer::new(store, secret.as_bytes())
         .with_secure(true)
@@ -90,6 +89,7 @@ pub struct Server {
     rate_limit_num: u64,
     rate_limit_per: Duration,
     rate_limit_buffer: u64,
+    session_secret: Option<String>,
 }
 
 impl Server {
@@ -102,6 +102,7 @@ impl Server {
             rate_limit_num: 1,
             rate_limit_per: Duration::from_secs(60),
             rate_limit_buffer: 1024,
+            session_secret: None,
         }
     }
 
@@ -120,8 +121,9 @@ impl Server {
     }
 
     /// turn on the session layer
-    pub fn enable_session(mut self) -> Self {
+    pub fn enable_session(mut self, secret: &str) -> Self {
         self.allow_session = true;
+        self.session_secret = Some(secret.to_string());
         self
     }
 
@@ -173,7 +175,7 @@ impl Server {
 
         if self.allow_session {
             tracing::info!("Enabling In-Memory session!");
-            let session_layer = setup_session_layer().await;
+            let session_layer = setup_session_layer(self.session_secret.unwrap_or_default()).await;
             router = router.layer(session_layer);
         }
 
