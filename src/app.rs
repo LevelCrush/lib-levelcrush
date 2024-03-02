@@ -136,6 +136,9 @@ where
         let application_name = env::get(EnvVar::ApplicationName);
         let application_host = env::get(EnvVar::ApplicationHost);
 
+        let database_string_core = env::get(EnvVar::DatabaseUrlCore);
+        let database_string_self = env::get(EnvVar::DatabaseUrlSelf);
+
         let my_app = if let Some(existing_app) = Application::get(&application_id, &application_secret, state).await? {
             existing_app
         } else {
@@ -146,6 +149,8 @@ where
                 (EnvVar::ApplicationSecret.into(), new_app.record.hash_secret.clone()),
                 (EnvVar::ApplicationName.into(), new_app.record.name.clone()),
                 (EnvVar::ApplicationHost.into(), new_app.record.host.clone()),
+                (EnvVar::DatabaseUrlCore.into(), database_string_core),
+                (EnvVar::DatabaseUrlSelf.into(), database_string_self),
             ];
             let new_settings: HashMap<&'static str, String> = new_settings.into_iter().collect();
 
@@ -201,7 +206,8 @@ mod tests {
         let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
 
         let state = ApplicationState::<DemoExtension> {
-            database: db,
+            database: db.clone(),
+            database_core: db,
             tasks: TaskPool::new(1),
             locks: RetryLock::default(),
             extension: DemoExtension::default(),
@@ -267,6 +273,36 @@ mod tests {
         let app = Application::register("mock_settings", "localhost", &state)
             .await
             .expect("Application did not create");
+
+        let global_process = app.process("global").await.expect("No process found or created");
+
+        // in this case we are going to opt to wait on the handle that returns
+        // but we do not need to actually do this in a real application
+        let mut handles = Vec::new();
+        handles.push(global_process.log(LogLevel::Info, "Hello World!", None));
+        handles.push(global_process.log(LogLevel::Warning, "Warn World!", None));
+        handles.push(global_process.log(LogLevel::Error, "Error World!", None));
+        handles.push(global_process.log(LogLevel::Debug, "Debug World!", None));
+
+        let _ = futures::future::join_all(handles).await;
+    }
+
+    #[traced_test]
+    #[tokio::test]
+    pub async fn app_env_load_test() {
+        let _ = dotenvy::dotenv();
+
+        tracing::info!("Setting up database connection");
+        let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
+        let state = ApplicationState::<()> {
+            database: db.clone(),
+            database_core: db,
+            tasks: TaskPool::new(1),
+            locks: RetryLock::default(),
+            extension: (),
+        };
+
+        let app = Application::env(&state).await.expect("Application did not create");
 
         let global_process = app.process("global").await.expect("No process found or created");
 
