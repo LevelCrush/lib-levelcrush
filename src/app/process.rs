@@ -87,6 +87,21 @@ where
         }
     }
 
+    pub fn log_info(&self, content: &str) -> JoinHandle<()> {
+        self.log(LogLevel::Info, content, None)
+    }
+
+    pub fn log_warning(&self, content: &str) -> JoinHandle<()> {
+        self.log(LogLevel::Warning, content, None)
+    }
+    pub fn log_error(&self, content: &str) -> JoinHandle<()> {
+        self.log(LogLevel::Error, content, None)
+    }
+
+    pub fn log_debug(&self, content: &str) -> JoinHandle<()> {
+        self.log(LogLevel::Debug, content, None)
+    }
+
     /// log a message to our database
     pub fn log(&self, log_level: LogLevel, content: &str, sub_id: Option<&str>) -> JoinHandle<()> {
         let sub_id = sub_id.unwrap_or("").to_string();
