@@ -1,0 +1,474 @@
+use sea_orm_migration::prelude::*;
+
+#[derive(DeriveMigrationName)]
+pub struct Migration;
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .create_table(
+                Table::create()
+                    .table(Applications::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Applications::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Applications::Hash).char_len(32).not_null().unique_key())
+                    .col(ColumnDef::new(Applications::HashSecret).char_len(32).not_null())
+                    .col(ColumnDef::new(Applications::Name).string_len(32).not_null())
+                    .col(ColumnDef::new(Applications::Host).string_len(255).not_null())
+                    .col(ColumnDef::new(Applications::CreatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(Applications::UpdatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(Applications::DeletedAt).big_integer().not_null())
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-index-hash-hashsecret")
+                            .table(Applications::Table)
+                            .col(Applications::Hash)
+                            .col(Applications::HashSecret),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationSettings::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ApplicationSettings::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationSettings::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationSettings::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(ColumnDef::new(ApplicationSettings::Name).string().not_null())
+                    .col(ColumnDef::new(ApplicationSettings::CreatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationSettings::UpdatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationSettings::DeletedAt).big_integer().not_null())
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-settings-app")
+                            .table(ApplicationSettings::Table)
+                            .col(ApplicationSettings::Application),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-settings-app-name")
+                            .table(ApplicationSettings::Table)
+                            .col(ApplicationSettings::Application)
+                            .col(ApplicationSettings::Name)
+                            .unique(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationSettings::Table, ApplicationSettings::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationGlobalSettings::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::Setting)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(ApplicationGlobalSettings::Value).text().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::CreatedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::UpdatedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationGlobalSettings::DeletedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-globalsettings-app-setting")
+                            .table(ApplicationGlobalSettings::Table)
+                            .col(ApplicationGlobalSettings::Application)
+                            .col(ApplicationGlobalSettings::Setting)
+                            .unique(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationGlobalSettings::Table, ApplicationGlobalSettings::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationGlobalSettings::Table, ApplicationGlobalSettings::Setting)
+                            .to(ApplicationSettings::Table, ApplicationSettings::Id),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationUserSettings::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::HashUser)
+                            .char_len(32)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::Setting)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(ApplicationUserSettings::Value).text().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::CreatedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::UpdatedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationUserSettings::DeletedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-usersettings-app-setting")
+                            .table(ApplicationUserSettings::Table)
+                            .col(ApplicationUserSettings::Application)
+                            .col(ApplicationUserSettings::Setting)
+                            .col(ApplicationUserSettings::HashUser)
+                            .unique(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationUserSettings::Table, ApplicationUserSettings::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationUserSettings::Table, ApplicationUserSettings::Setting)
+                            .to(ApplicationSettings::Table, ApplicationSettings::Id),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationProcesses::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ApplicationProcesses::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcesses::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcesses::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(ColumnDef::new(ApplicationProcesses::Name).string().not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::CreatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::UpdatedAt).big_integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcesses::DeletedAt).big_integer().not_null())
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-process-app-name")
+                            .table(ApplicationProcesses::Table)
+                            .col(ApplicationProcesses::Application)
+                            .col(ApplicationProcesses::Name)
+                            .unique(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationProcesses::Table, ApplicationProcesses::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationProcessLogs::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::Application)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(ApplicationProcessLogs::Process).big_integer().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::Hash)
+                            .char_len(32)
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(ColumnDef::new(ApplicationProcessLogs::HashSub).char_len(32).not_null())
+                    .col(ColumnDef::new(ApplicationProcessLogs::Type).tiny_integer().not_null())
+                    .col(ColumnDef::new(ApplicationProcessLogs::Content).text().not_null())
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::CreatedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::UpdatedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationProcessLogs::DeletedAt)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-type")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Type),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-type-hashsub")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Type)
+                            .col(ApplicationProcessLogs::HashSub),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-process-type")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Process)
+                            .col(ApplicationProcessLogs::Type),
+                    )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("app-processlog-app-process-type-hashsub")
+                            .table(ApplicationProcessLogs::Table)
+                            .col(ApplicationProcessLogs::Application)
+                            .col(ApplicationProcessLogs::Process)
+                            .col(ApplicationProcessLogs::Type)
+                            .col(ApplicationProcessLogs::HashSub),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationProcessLogs::Table, ApplicationProcessLogs::Application)
+                            .to(Applications::Table, Applications::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(ApplicationProcessLogs::Table, ApplicationProcessLogs::Process)
+                            .to(ApplicationProcesses::Table, ApplicationProcesses::Id),
+                    )
+                    .to_owned(),
+            )
+            .await
+    }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_table(Table::drop().table(Applications::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(ApplicationSettings::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(ApplicationGlobalSettings::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(ApplicationUserSettings::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(ApplicationProcesses::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(ApplicationProcessLogs::Table).to_owned())
+            .await
+    }
+}
+
+#[derive(DeriveIden)]
+enum Applications {
+    Table,
+    Id,
+    Hash,
+    HashSecret,
+    Name,
+    Host,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(DeriveIden)]
+enum ApplicationSettings {
+    Table,
+    Id,
+    Application,
+    Hash,
+    Name,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(DeriveIden)]
+enum ApplicationGlobalSettings {
+    Table,
+    Id,
+    Application,
+    Hash,
+    Setting,
+    Value,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(DeriveIden)]
+enum ApplicationUserSettings {
+    Table,
+    Id,
+    Application,
+    Hash,
+    HashUser,
+    Setting,
+    Value,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(DeriveIden)]
+enum ApplicationProcesses {
+    Table,
+    Id,
+    Application,
+    Hash,
+    Name,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}
+
+#[derive(DeriveIden)]
+enum ApplicationProcessLogs {
+    Table,
+    Id,
+    Application,
+    Process,
+    Type,
+    Hash,
+    HashSub,
+    Content,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+}

@@ -144,6 +144,12 @@ where
         reader.len()
     }
 
+    /// is the cache empty
+    pub async fn is_empty(&self) -> bool {
+        let reader = self.data.read().await;
+        reader.is_empty()
+    }
+
     /// iterates through the memory cache and decides based on cache duration which entries to remove
     pub async fn prune(&mut self) {
         let expired = {

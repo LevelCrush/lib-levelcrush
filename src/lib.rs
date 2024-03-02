@@ -17,17 +17,20 @@ pub use urlencoding;
 pub use uuid;
 
 pub use levelcrush_macros as proc_macros;
-pub use {bigdecimal, bigdecimal::BigDecimal, sqlx, sqlx::Sqlite, sqlx::SqlitePool};
 
 pub mod alias;
 pub mod cache;
 pub mod database;
+pub mod entities;
 pub mod macros;
-pub mod queries;
+pub mod app;
 pub mod retry_lock;
 pub mod server;
 pub mod task_pool;
 pub mod util;
+
+pub use entities::prelude::*;
+//pub use sea_orm::EntityTrait;
 
 /// setups tracing and loads settings from the local .env file
 pub fn env() {
@@ -36,4 +39,28 @@ pub fn env() {
 
     // setup better tracing
     tracing_subscriber::fmt::init();
+}
+
+#[cfg(test)]
+mod test {
+
+    use crate::database;
+    use crate::tokio;
+
+    #[tokio::test]
+    pub async fn test_app() {
+        let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
+        tracing::info!("Testing connection");
+        let r = db.ping().await;
+
+        
+
+        
+
+        if r.is_err() {
+            tracing::info!("Bad connection");
+        } else {
+            tracing::info!("Good connection");
+        }
+    }
 }

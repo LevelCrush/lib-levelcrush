@@ -1,37 +1,40 @@
 [package]
 name = "levelcrush"
-version = "1.0.2"
+version = "2.0.0"
 edition = "2021"
 
 [lib]
 doctest = false
+name = "levelcrush"
+
+[workspace]
+members = ["migration", "."]
 
 
-[dependencies]
-
-# webserver 
+[workspace.dependencies]
+migration = { path = "migration" }
+levelcrush-macros = { git = "https://code.levelcrush.com/LevelCrush/lib-levelcrush-macros.git", rev = "67288bd0d7" }
 tower-http = { version = "0.4.2", features = [
     "full",
 ], default_features = false }
 axum = { version = "0.6.19" }
 axum-sessions = { version = "0.5.0" }
 tower = { version = "0.4.13", features = ["full"], default_features = false }
+sea-orm = { version = "0.12", features = [
+    "sqlx-mysql",
+    "runtime-tokio-rustls",
+    "macros",
+    "with-bigdecimal",
+    "with-chrono",
+    "with-uuid",
+] }
 
-levelcrush-macros = { git = "https://code.levelcrush.com/LevelCrush/lib-levelcrush-macros.git", rev = "67288bd0d7" }
 tokio = { version = "1.25.0", features = ["full", "tracing"] }
 serde = { version = "1.0.171", features = ["derive"] }
 serde_json = { version = "1.0.103" }
 serde_urlencoded = { version = "0.7.1" }
 serde_repr = { version = "0.1.14" }
 serde_yaml = { version = "0.9.25" }
-sqlx = { version = "0.7.1", features = [
-    "sqlite",
-    "bigdecimal",
-    "runtime-tokio-rustls",
-    "macros",
-    "chrono",
-], default_features = false }
-bigdecimal = { version = "0.3.1", features = ["serde"] } # compat with sqlx
 chrono = { version = "0.4.26", features = ["serde", "default"] }
 tracing = { version = "0.1.37", features = ["log"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
@@ -50,3 +53,34 @@ clap = { version = "4.3.17", features = ["derive"] }
 md5 = { version = "0.7.0" }
 base64 = { version = "0.21.0" }
 urlencoding = { version = "2.1.2" }
+
+
+[dependencies]
+migration = { workspace = true }
+levelcrush-macros = { workspace = true }
+tower-http = { workspace = true }
+axum = { workspace = true }
+axum-sessions = { workspace = true }
+tower = { workspace = true }
+sea-orm = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_urlencoded = { workspace = true }
+serde_repr = { workspace = true }
+serde_yaml = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+dotenvy = { workspace = true }
+dotenvy_macro = { workspace = true }
+anyhow = { workspace = true }
+uuid = { workspace = true }
+tracing-test = { workspace = true }
+rand = { workspace = true }
+futures = { workspace = true }
+reqwest = { workspace = true }
+clap = { workspace = true }
+md5 = { workspace = true }
+base64 = { workspace = true }
+urlencoding = { workspace = true }
