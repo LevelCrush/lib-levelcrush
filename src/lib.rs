@@ -19,15 +19,17 @@ pub use uuid;
 pub use levelcrush_macros as proc_macros;
 
 pub mod alias;
+pub mod app;
 pub mod cache;
 pub mod database;
 pub mod entities;
 pub mod macros;
-pub mod app;
 pub mod retry_lock;
 pub mod server;
 pub mod task_pool;
 pub mod util;
+
+pub mod env;
 
 pub use entities::prelude::*;
 //pub use sea_orm::EntityTrait;
@@ -52,10 +54,6 @@ mod test {
         let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
         tracing::info!("Testing connection");
         let r = db.ping().await;
-
-        
-
-        
 
         if r.is_err() {
             tracing::info!("Bad connection");
