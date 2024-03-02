@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use crate::env::{self, EnvVar};
 use crate::util::unix_timestamp;
 use crate::{entities, retry_lock::RetryLock, task_pool::TaskPool};
 use anyhow::{anyhow, Result};
@@ -18,6 +21,7 @@ where
     Extension: Clone,
 {
     pub database: DatabaseConnection,
+    pub database_core: DatabaseConnection,
     pub tasks: TaskPool,
     pub locks: RetryLock,
     pub extension: Extension,
@@ -123,8 +127,31 @@ where
     }
 
     /// Attempts to autoload  the application based off the application .env settings
-    /// If no application can be found. It will register a new one and save the files into the .env
-    pub async fn env() -> anyhow::Result<()> {
+    /// If no application can be found. It will register a new one and save the information into the .env
+    pub async fn env(state: &ApplicationState<Extension>) -> anyhow::Result<()> {
+        let application_id = env::get(EnvVar::ApplicationID);
+        let application_secret = env::get(EnvVar::ApplicationSecret);
+        let application_name = env::get(EnvVar::ApplicationName);
+        let application_host = env::get(EnvVar::ApplicationHost);
+
+        let my_app = if let Some(existing_app) = Application::get(&application_id, &application_secret, state).await? {
+            existing_app
+        } else {
+            let new_app = Application::register(&application_name, &application_host, state).await?;
+
+            let new_settings = vec![
+                (EnvVar::ApplicationID.into(), new_app.record.hash.clone()),
+                (EnvVar::ApplicationSecret.into(), new_app.record.hash_secret.clone()),
+                (EnvVar::ApplicationName.into(), new_app.record.name.clone()),
+                (EnvVar::ApplicationHost.into(), new_app.record.host.clone()),
+            ];
+            let new_settings: HashMap<&'static str, String> = new_settings.into_iter().collect();
+
+            crate::env::save(new_settings).await?;
+
+            new_app
+        };
+
         Ok(())
     }
 
@@ -188,7 +215,8 @@ mod tests {
         let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
 
         let state = ApplicationState::<()> {
-            database: db,
+            database: db.clone(),
+            database_core: db,
             tasks: TaskPool::new(1),
             locks: RetryLock::default(),
             extension: (),
@@ -202,7 +230,8 @@ mod tests {
         tracing::info!("Setting up database connection");
         let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
         let state = ApplicationState::<()> {
-            database: db,
+            database: db.clone(),
+            database_core: db,
             tasks: TaskPool::new(1),
             locks: RetryLock::default(),
             extension: (),
@@ -226,7 +255,8 @@ mod tests {
         tracing::info!("Setting up database connection");
         let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
         let state = ApplicationState::<()> {
-            database: db,
+            database: db.clone(),
+            database_core: db,
             tasks: TaskPool::new(1),
             locks: RetryLock::default(),
             extension: (),
@@ -258,7 +288,8 @@ mod tests {
 
         let db = database::connect("mysql://root@localhost/levelcrush", 1).await;
         let state = ApplicationState::<()> {
-            database: db,
+            database: db.clone(),
+            database_core: db,
             tasks: TaskPool::new(1),
             locks: RetryLock::default(),
             extension: (),
