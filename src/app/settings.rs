@@ -47,7 +47,7 @@ where
                     .add(application_settings::Column::Application.eq(app.record.id))
                     .add(application_settings::Column::DeletedAt.eq(0)),
             )
-            .all(&app.state.database)
+            .all(&app.state.database_core)
             .await?;
 
         let mut settings_ids = Vec::new();
@@ -64,7 +64,7 @@ where
                     .add(application_global_settings::Column::Setting.is_in(settings_ids))
                     .add(application_global_settings::Column::DeletedAt.eq(0)),
             )
-            .all(&app.state.database)
+            .all(&app.state.database_core)
             .await?;
 
         let base_string = "".to_string();
@@ -169,10 +169,10 @@ where
 
             // insert and fetch
             let insert = application_settings::Entity::insert(core_model)
-                .exec(&self.application.state.database)
+                .exec(&self.application.state.database_core)
                 .await?;
             let model = application_settings::Entity::find_by_id(insert.last_insert_id)
-                .one(&self.application.state.database)
+                .one(&self.application.state.database_core)
                 .await?;
 
             if let Some(model) = model.as_ref() {
@@ -215,11 +215,11 @@ where
                     };
 
                     let insert = application_global_settings::Entity::insert(active)
-                        .exec(&self.application.state.database)
+                        .exec(&self.application.state.database_core)
                         .await?;
 
                     let model = application_global_settings::Entity::find_by_id(insert.last_insert_id)
-                        .one(&self.application.state.database)
+                        .one(&self.application.state.database_core)
                         .await?;
 
                     if let Some(model) = model {
@@ -253,7 +253,7 @@ where
                                 .add(application_user_settings::Column::Setting.eq(setting_id))
                                 .add(application_user_settings::Column::HashUser.eq(target_user.clone())),
                         )
-                        .one(&self.application.state.database)
+                        .one(&self.application.state.database_core)
                         .await?;
                     // if we do have a user model, store in our cache for later
                     if let Some(target_user_model) = target_user_model.as_ref() {
@@ -287,10 +287,10 @@ where
                     };
 
                     let insert = application_user_settings::Entity::insert(active)
-                        .exec(&self.application.state.database)
+                        .exec(&self.application.state.database_core)
                         .await?;
                     let model = application_user_settings::Entity::find_by_id(insert.last_insert_id)
-                        .one(&self.application.state.database)
+                        .one(&self.application.state.database_core)
                         .await?;
 
                     if let Some(model) = model {

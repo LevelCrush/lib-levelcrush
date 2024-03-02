@@ -42,7 +42,7 @@ where
                     .add(application_processes::Column::Name.eq(name))
                     .add(application_processes::Column::DeletedAt.eq(0)),
             )
-            .one(&application.state.database)
+            .one(&application.state.database_core)
             .await?;
 
         if let Some(record) = model_process {
@@ -70,11 +70,11 @@ where
         };
 
         let process = ApplicationProcessEntity::insert(new_process)
-            .exec(&application.state.database)
+            .exec(&application.state.database_core)
             .await?;
 
         let process_model = ApplicationProcessEntity::find_by_id(process.last_insert_id)
-            .one(&application.state.database)
+            .one(&application.state.database_core)
             .await?;
 
         if let Some(record) = process_model {
@@ -109,7 +109,7 @@ where
         let application_id = self.application.record.id;
         let process_id = self.record.id;
         let content_cloned = content.to_string();
-        let database = self.application.state.database.clone();
+        let database = self.application.state.database_core.clone();
 
         // spawn a background task to log this off to a database.
         // we do this so we dont have to wait around for the response

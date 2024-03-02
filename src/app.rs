@@ -64,9 +64,11 @@ where
             deleted_at: ActiveValue::Set(0),
         };
 
-        let app = ApplicationEntity::insert(new_app).exec(&app_state.database).await?;
+        let app = ApplicationEntity::insert(new_app)
+            .exec(&app_state.database_core)
+            .await?;
         let application = ApplicationEntity::find_by_id(app.last_insert_id)
-            .one(&app_state.database)
+            .one(&app_state.database_core)
             .await?;
 
         if let Some(record) = application {
@@ -95,7 +97,7 @@ where
         self.record.updated_at = unix_timestamp();
 
         let active: applications::ActiveModel = self.record.clone().into();
-        active.save(&self.state.database).await?;
+        active.save(&self.state.database_core).await?;
 
         Ok(())
     }
@@ -128,7 +130,7 @@ where
 
     /// Attempts to autoload  the application based off the application .env settings
     /// If no application can be found. It will register a new one and save the information into the .env
-    pub async fn env(state: &ApplicationState<Extension>) -> anyhow::Result<()> {
+    pub async fn env(state: &ApplicationState<Extension>) -> anyhow::Result<Application<Extension>> {
         let application_id = env::get(EnvVar::ApplicationID);
         let application_secret = env::get(EnvVar::ApplicationSecret);
         let application_name = env::get(EnvVar::ApplicationName);
@@ -152,7 +154,7 @@ where
             new_app
         };
 
-        Ok(())
+        Ok(my_app)
     }
 
     /// get the name of the application
