@@ -28,6 +28,7 @@ pub mod retry_lock;
 pub mod server;
 pub mod task_pool;
 pub mod util;
+pub use sea_orm;
 
 pub mod env;
 
