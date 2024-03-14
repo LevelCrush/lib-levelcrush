@@ -11,7 +11,7 @@ impl EntityName for Entity {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq, Defaul)]
+#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq, Default)]
 pub struct Model {
     pub id: i64,
     pub application: i64,
