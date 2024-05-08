@@ -115,7 +115,7 @@ where
                     .add(applications::Column::HashSecret.eq(secret))
                     .add(applications::Column::DeletedAt.eq(0)),
             )
-            .one(&app_state.database)
+            .one(&app_state.database_core)
             .await?;
 
         if let Some(record) = model {
